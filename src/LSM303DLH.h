@@ -10,17 +10,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
-#ifndef LSM3303DLM_H_
-#define LSM3303DLM_H_
+#ifndef LSM303DLH_H_
+#define LSM303DLH_H_
 
 #include <mbed.h>
 #include "Int16Vector.h"
 
 
-class LSM303DLM
+class LSM303DLH
 {
 public:
-    LSM303DLM(PinName sdaPin, PinName sclPin, int sa0PinValue = 0, int i2cFrequency = 100000);
+    LSM303DLH(PinName sdaPin, PinName sclPin, int sa0PinValue = 0, int i2cFrequency = 100000);
     
     int         didInitFail() { return m_failedInit; }
     int         didIoFail() { return m_failedIo; }
@@ -45,4 +45,4 @@ protected:
     int     m_accelAddress;
 };
 
-#endif /* LSM3303DLM_H_ */
+#endif /* LSM303DLH_H_ */

@@ -10,14 +10,14 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
-#include "LSM303DLM.h"
+#include "LSM303DLH.h"
 
 
-/* I2C Addresses for Accelerometer and Magnetometer in LSM303DLM */
+/* I2C Addresses for Accelerometer and Magnetometer in LSM303DLH */
 #define I2C_ADDRESS_ACCEL_BASE 0x30
 #define I2C_ADDRESS_MAG        0x3C
 
-/* LSM303DLM Accelerometer I2C Registers */
+/* LSM303DLH Accelerometer I2C Registers */
 #define CTRL_REG1_A         0x20
 #define CTRL_REG2_A         0x21
 #define CTRL_REG3_A         0x22
@@ -41,24 +41,23 @@
 #define INT2_THS_A          0x36
 #define INT2_DURATION_A     0x37
 
-/* LSM303DLM Magnetometer I2C Registers */
+/* LSM303DLH Magnetometer I2C Registers */
 #define CRA_REG_M           0x00
 #define CRB_REG_M           0x01
 #define MR_REG_M            0x02
 #define OUT_X_H_M           0x03
 #define OUT_X_L_M           0x04
-#define OUT_Y_H_M           0x07
-#define OUT_Y_L_M           0x08
-#define OUT_Z_H_M           0x05
-#define OUT_Z_L_M           0x06
+#define OUT_Y_H_M           0x05
+#define OUT_Y_L_M           0x06
+#define OUT_Z_H_M           0x07
+#define OUT_Z_L_M           0x08
 #define SR_REG_M            0x09
 #define IRA_REG_M           0x0a
 #define IRB_REG_M           0x0b
 #define IRC_REG_M           0x0c
-#define WHO_AM_I_M          0x0f
 
 
-LSM303DLM::LSM303DLM(PinName sdaPin, PinName sclPin, int sa0PinValue /* = 0 */, int i2cFrequency /* = 100000 */) :
+LSM303DLH::LSM303DLH(PinName sdaPin, PinName sclPin, int sa0PinValue /* = 0 */, int i2cFrequency /* = 100000 */) :
     m_i2c(sdaPin, sclPin), m_failedInit(0), m_failedIo(0)
 {
     m_i2c.frequency(i2cFrequency);
@@ -66,13 +65,13 @@ LSM303DLM::LSM303DLM(PinName sdaPin, PinName sclPin, int sa0PinValue /* = 0 */, 
     initDevice();
 }
 
-void LSM303DLM::initDevice()
+void LSM303DLH::initDevice()
 {
     initAccelerometer();
     initMagnetometer();
 }
 
-void LSM303DLM::initAccelerometer()
+void LSM303DLH::initAccelerometer()
 {
     do
     {
@@ -96,19 +95,19 @@ void LSM303DLM::initAccelerometer()
         m_failedInit = 1;
 }
 
-void LSM303DLM::writeAccelerometerRegister(char registerAddress, char value)
+void LSM303DLH::writeAccelerometerRegister(char registerAddress, char value)
 {
     writeRegister(m_accelAddress, registerAddress, value);
 }
 
-void LSM303DLM::writeRegister(int i2cAddress, char registerAddress, char value)
+void LSM303DLH::writeRegister(int i2cAddress, char registerAddress, char value)
 {
     char dataToSend[2] = { registerAddress, value };
     
     m_failedIo = m_i2c.write(i2cAddress, dataToSend, sizeof(dataToSend), false);
 }
 
-void LSM303DLM::initMagnetometer()
+void LSM303DLH::initMagnetometer()
 {
     do
     {
@@ -133,12 +132,12 @@ void LSM303DLM::initMagnetometer()
         m_failedInit = 1;
 }
 
-void LSM303DLM::writeMagnetometerRegister(char registerAddress, char value)
+void LSM303DLH::writeMagnetometerRegister(char registerAddress, char value)
 {
     writeRegister(I2C_ADDRESS_MAG, registerAddress, value);
 }
 
-Int16Vector LSM303DLM::getAccelerometerVector()
+Int16Vector LSM303DLH::getAccelerometerVector()
 {
     Int16Vector vector;
 
@@ -147,7 +146,7 @@ Int16Vector LSM303DLM::getAccelerometerVector()
     return vector;
 }
 
-void LSM303DLM::readAccelerometerRegisters(char registerAddress, void* pBuffer, size_t bufferSize)
+void LSM303DLH::readAccelerometerRegisters(char registerAddress, void* pBuffer, size_t bufferSize)
 {
     static const char multipleRegisterReadBit = 1 << 7;
     
@@ -155,7 +154,7 @@ void LSM303DLM::readAccelerometerRegisters(char registerAddress, void* pBuffer, 
     readRegisters(m_accelAddress, registerAddress, pBuffer, bufferSize);
 }
 
-void LSM303DLM::readRegisters(int i2cAddress, char registerAddress, void* pBuffer, size_t bufferSize)
+void LSM303DLH::readRegisters(int i2cAddress, char registerAddress, void* pBuffer, size_t bufferSize)
 {
     m_failedIo = m_i2c.write(i2cAddress, &registerAddress, sizeof(registerAddress), true);
     if (m_failedIo)
@@ -163,7 +162,7 @@ void LSM303DLM::readRegisters(int i2cAddress, char registerAddress, void* pBuffe
     m_failedIo = m_i2c.read(i2cAddress, (char*)pBuffer, bufferSize, false);
 }
 
-Int16Vector LSM303DLM::getMagnetometerVector()
+Int16Vector LSM303DLH::getMagnetometerVector()
 {
     char byteArray[6];
 
@@ -172,17 +171,17 @@ Int16Vector LSM303DLM::getMagnetometerVector()
     return convertMagnetometerBytesToVector(byteArray);
 }
 
-void LSM303DLM::readMagnetometerRegisters(char registerAddress, void* pBuffer, size_t bufferSize)
+void LSM303DLH::readMagnetometerRegisters(char registerAddress, void* pBuffer, size_t bufferSize)
 {
     readRegisters(I2C_ADDRESS_MAG, registerAddress, pBuffer, bufferSize);
 }
 
-Int16Vector LSM303DLM::convertMagnetometerBytesToVector(char byteArray[])
+Int16Vector LSM303DLH::convertMagnetometerBytesToVector(char byteArray[])
 {
-    // Swap bytes for each axis and swap y and z as the LSM303DLM swaps these.
+    // Swap bytes for each axis.
     int16_t x = (byteArray[0] << 8) | byteArray[1];
-    int16_t y = (byteArray[4] << 8) | byteArray[5];
-    int16_t z = (byteArray[2] << 8) | byteArray[3];
+    int16_t y = (byteArray[2] << 8) | byteArray[3];
+    int16_t z = (byteArray[4] << 8) | byteArray[5];
     
     return Int16Vector(x, y, z);
 }
