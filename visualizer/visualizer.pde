@@ -58,17 +58,6 @@ void draw()
   lights();
   translate(width/2, height/2, 0);
   drawCompass(headingAngle);
-
-/*
-  // Spew current raw heading sensor reading to console.
-  g_headingSensor.getCurrentRaw().print();
-  println();
-*/
-/*
-  // Spew current heading sensor reading to console.
-  g_headingSensor.getCurrent().print();
-  println();
-*/
 }
 
 void drawCompass(float angle)
