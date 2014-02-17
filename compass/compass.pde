@@ -24,8 +24,8 @@ void setup()
 
   // These min/max configuration values were found by rotating my sensor setup
   // and dumping min/max values with the d key.
-  Heading min = new Heading(-20128,-16672,-16464,-932,-559,-540);
-  Heading max = new Heading(17600,16192,17072,378,512,566);
+  Heading min = new Heading(-16592,-16112,-16144,-472,-229,-221);
+  Heading max = new Heading(16448,16400,16448,41,245,173);
   g_headingSensor = new HeadingSensor(port, min, max);
 }
 
