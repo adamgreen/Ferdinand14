@@ -13,7 +13,7 @@
 import processing.serial.*;
 
 HeadingSensor g_headingSensor;
-boolean       g_sensorFlat = false;
+boolean       g_sensorFlat = true;
 boolean       g_tiltCompensated = true;
 void setup() 
 {
@@ -24,8 +24,8 @@ void setup()
 
   // These min/max configuration values were found by rotating my sensor setup
   // and dumping min/max values with the d key.
-  Heading min = new Heading(-16592,-16112,-16144,-472,-229,-221);
-  Heading max = new Heading(16448,16400,16448,41,245,173);
+  Heading min = new Heading(-16592,-16112,-16144,-648,-571,-526);
+  Heading max = new Heading(16448,16400,16448,526,602,500);
   g_headingSensor = new HeadingSensor(port, min, max);
 }
 
