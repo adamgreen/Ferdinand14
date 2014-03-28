@@ -13,20 +13,17 @@
 import processing.serial.*;
 
 HeadingSensor g_headingSensor;
-Complex[][]   g_samples;
-int           g_samplePingPong = 0;
-int           g_displayPingPong = 0;
-int           g_sampleIndex = 0;
 int           g_axis = 0;
+float[]       g_samples;
+int           g_sampleIndex;
 
 void setup() 
 {
-  size(128, 128);
+  size(1000, 700);
 
-  g_samples = new Complex[2][];
-  for (int i = 0 ; i < g_samples.length ; i++)
-    g_samples[i] = new Complex[width * 2];
-  
+  g_samples = new float[width];
+  g_sampleIndex = 0;
+
   Serial port = new Serial(this, "/dev/tty.usbmodem1412", 9600);
 
   // These min/max configuration values were found by rotating my sensor setup
@@ -38,27 +35,26 @@ void setup()
 
 void draw()
 {
-  if (g_displayPingPong == g_samplePingPong)
-    return;
-   
-  calculateFFT(g_samples[g_displayPingPong]);
-
-  Float[] magnitudes = calculateMagnitudes(g_samples[g_displayPingPong]);
-  float maximumMag = 0.0f;
-  for (int i = 0 ; i < magnitudes.length / 2 ; i++)
-  {
-    if (magnitudes[i] > maximumMag)
-      maximumMag = magnitudes[i];
-  }
-
-  background(0);
-  stroke(0, 0, 255);
+  background(128);
+  stroke(0);
   strokeWeight(1);
-  for (int i = 0 ; i < magnitudes.length / 2 ; i++)
+  translate(0, height / 2);
+  scale(1, -1);
+
+  line(0, 0, width - 1, 0);
+  beginShape(LINES);
+  int current = g_sampleIndex;
+  int i = current;
+  for (int x = width - 1; x >= 0 ; x--)
   {
-    line(i, height, i, map(magnitudes[i], 0, maximumMag, height, 0));
-  }
-  g_displayPingPong = g_samplePingPong;
+    i--; 
+    if (i < 0)
+      i = g_samples.length - 1;
+
+    float y = map(g_samples[i], -1.0f, 1.0f, -height/2, height/2);
+    vertex(x, y);
+  } while (i != current);
+  endShape();
 }
 
 void serialEvent(Serial port)
@@ -68,13 +64,31 @@ void serialEvent(Serial port)
 
   g_headingSensor.update();
   FloatHeading heading = g_headingSensor.getCurrent();
-
-  g_samples[g_samplePingPong][g_sampleIndex++] = new Complex(heading.m_accelX, 0.0f);
-  if (g_sampleIndex >= g_samples[g_samplePingPong].length)
+  
+  float sample = 0.0f;
+  switch (g_axis)
   {
-    g_samplePingPong ^= 1;
-    g_sampleIndex = 0;
+  case 0:
+    sample = heading.m_accelX;
+    break;
+  case 1:
+    sample = heading.m_accelY;
+    break;
+  case 2:
+    sample = heading.m_accelZ;
+    break;
+  case 3:
+    sample = heading.m_magX;
+    break;
+  case 4:
+    sample = heading.m_magY;
+    break;
+  case 5:
+    sample = heading.m_magZ;
+    break;
   }
+  g_samples[g_sampleIndex] = sample;
+  g_sampleIndex = (g_sampleIndex + 1) % g_samples.length;
 }
 
 void keyPressed()
@@ -91,6 +105,15 @@ void keyPressed()
     break;
   case 'z':
     g_axis = 2;
+    break;
+  case 'a':
+    g_axis = 3;
+    break;
+  case 'b':
+    g_axis = 4;
+    break;
+  case 'c':
+    g_axis = 5;
     break;
   }
 }
