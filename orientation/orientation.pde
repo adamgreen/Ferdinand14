@@ -13,7 +13,9 @@
 import processing.serial.*;
 
 HeadingSensor g_headingSensor;
-PVector[]     g_baseRotation;
+PMatrix3D     g_baseRotation;
+PMatrix3D     g_rotationMatrix;
+boolean       g_zeroRotation = true;
 
 void setup() 
 {
@@ -22,10 +24,6 @@ void setup()
 
   Serial port = new Serial(this, "/dev/tty.usbmodem1412", 9600);
 
-  g_baseRotation = new PVector[3];
-  for (int i = 0 ; i < g_baseRotation.length ; i++)
-    g_baseRotation[i] = new PVector(0, 0, 0);
-  
   // These min/max configuration values were found by rotating my sensor setup
   // and dumping min/max values with the d key.
   Heading min = new Heading(-16592,-16112,-16144,-648,-571,-526);
@@ -58,10 +56,22 @@ void draw()
   // is orthogonal to both the down and north vectors (ie. the normalized cross product).
   PVector west = north.cross(down);
   west.normalize();
-  applyMatrix(north.x, north.y, north.z, 0.0,
-              down.x, down.y, down.z, 0.0,
-              west.x, west.y, west.z, 0.0,
-              0.0, 0.0, 0.0, 1.0);
+  g_rotationMatrix = new PMatrix3D(north.x, north.y, north.z, 0.0,
+                                   down.x, down.y, down.z, 0.0,
+                                   west.x, west.y, west.z, 0.0,
+                                   0.0, 0.0, 0.0, 1.0);
+
+  // If the user has pressed the space key, then zero the rotation matrix at this orientation.
+  if (g_zeroRotation)
+  {
+    g_baseRotation = new PMatrix3D(g_rotationMatrix);
+    g_baseRotation.invert();
+    g_zeroRotation = false;
+  }
+
+  // Make the current rotation relative to base orientation.
+  g_rotationMatrix.preApply(g_baseRotation);
+  applyMatrix(g_rotationMatrix);
 
   // Draw four sides of box with different colours on each.
   stroke(160);
@@ -102,5 +112,17 @@ void serialEvent(Serial port)
 {
   if (g_headingSensor != null)
     g_headingSensor.update();
+}
+
+void keyPressed()
+{
+  char lowerKey = Character.toLowerCase(key);
+  
+  switch(lowerKey)
+  {
+  case ' ':
+    g_zeroRotation = true;
+    break;
+  }
 }
 
