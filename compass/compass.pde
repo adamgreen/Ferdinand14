@@ -15,6 +15,9 @@ import processing.serial.*;
 HeadingSensor g_headingSensor;
 boolean       g_sensorFlat = true;
 boolean       g_tiltCompensated = true;
+boolean       g_smoothed = true;
+
+
 void setup() 
 {
   size(400, 225, OPENGL);
@@ -26,14 +29,19 @@ void setup()
   // and dumping min/max values with the d key.
   Heading min = new Heading(-16592,-16112,-16144,-648,-571,-526);
   Heading max = new Heading(16448,16400,16448,526,602,500);
-  g_headingSensor = new HeadingSensor(port, min, max);
+  Heading filterWidths = new Heading(4, 4, 4, 16, 16, 16);
+  g_headingSensor = new HeadingSensor(port, min, max, filterWidths);
 }
 
 void draw()
 {
   background(0);
 
-  FloatHeading heading = g_headingSensor.getCurrent();
+  FloatHeading heading;
+  if (g_smoothed)
+    heading = g_headingSensor.getCurrentFiltered();
+  else
+    heading = g_headingSensor.getCurrent();
   
   // The magnetometer output represents the north vector.
   PVector north = new PVector(heading.m_magX, heading.m_magY, heading.m_magZ);
@@ -147,6 +155,8 @@ void keyPressed()
   case 'n':
     g_tiltCompensated = false;
     break;
+  case 's':
+    g_smoothed = !g_smoothed; 
   }
 }
 

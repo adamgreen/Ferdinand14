@@ -14,6 +14,7 @@ import processing.serial.*;
 
 HeadingSensor g_headingSensor;
 int           g_axis = 0;
+boolean       g_filtered = false;
 float[]       g_samples;
 int           g_sampleIndex;
 
@@ -30,7 +31,8 @@ void setup()
   // and dumping min/max values with the d key.
   Heading min = new Heading(-16592,-16112,-16144,-648,-571,-526);
   Heading max = new Heading(16448,16400,16448,526,602,500);
-  g_headingSensor = new HeadingSensor(port, min, max);
+  Heading filterWidths = new Heading(4, 4, 4, 16, 16, 16);
+  g_headingSensor = new HeadingSensor(port, min, max, filterWidths);
 }
 
 void draw()
@@ -63,7 +65,11 @@ void serialEvent(Serial port)
     return;
 
   g_headingSensor.update();
-  FloatHeading heading = g_headingSensor.getCurrent();
+  FloatHeading heading;
+  if (g_filtered)
+    heading = g_headingSensor.getCurrentFiltered();
+  else
+    heading = g_headingSensor.getCurrent();
   
   float sample = 0.0f;
   switch (g_axis)
@@ -115,6 +121,9 @@ void keyPressed()
   case 'c':
     g_axis = 5;
     break;
+   case 'f':
+     g_filtered = !g_filtered;
+     break;
   }
 }
 

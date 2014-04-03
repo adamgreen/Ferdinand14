@@ -12,9 +12,17 @@
 */
 class HeadingSensor
 {
-  HeadingSensor(Serial port, Heading min, Heading max)
+  HeadingSensor(Serial port, Heading min, Heading max, Heading sampleCounts)
   {
     calibrate(min, max);
+    
+    m_averages = new MovingAverage[6];
+    m_averages[0] = new MovingAverage(sampleCounts.m_accelX);
+    m_averages[1] = new MovingAverage(sampleCounts.m_accelY);
+    m_averages[2] = new MovingAverage(sampleCounts.m_accelZ);
+    m_averages[3] = new MovingAverage(sampleCounts.m_magX);
+    m_averages[4] = new MovingAverage(sampleCounts.m_magY);
+    m_averages[5] = new MovingAverage(sampleCounts.m_magZ);
     
     // Clear out any data that we might be in the middle of.
     m_port = port;
@@ -54,6 +62,9 @@ class HeadingSensor
       m_currentRaw.m_magX = int(tokens[3]);
       m_currentRaw.m_magY = int(tokens[4]);
       m_currentRaw.m_magZ = int(tokens[5]);
+      
+      for (int i = 0 ; i < m_averages.length ; i++)
+        m_averages[i].update(int(tokens[i]));
    
    // UNDONE: I am just trying to catch an errant value here.   
    if (m_currentRaw.m_accelZ < -40000)
@@ -70,6 +81,26 @@ class HeadingSensor
   Heading getCurrentRaw()
   {
     return m_currentRaw;
+  }
+  
+  Heading getFiltered()
+  {
+    return new Heading(m_averages[0].getAverage(),
+                       m_averages[1].getAverage(),
+                       m_averages[2].getAverage(),
+                       m_averages[3].getAverage(),
+                       m_averages[4].getAverage(),
+                       m_averages[5].getAverage());
+  }
+  
+  FloatHeading getCurrentFiltered()
+  {
+    return new FloatHeading((m_averages[0].getAverage() - m_midpoint.m_accelX) / m_scale.m_accelX,
+                            (m_averages[1].getAverage() - m_midpoint.m_accelY) / m_scale.m_accelY,
+                            (m_averages[2].getAverage() - m_midpoint.m_accelZ) / m_scale.m_accelZ,
+                            (m_averages[3].getAverage() - m_midpoint.m_magX) / m_scale.m_magX,
+                            (m_averages[4].getAverage() - m_midpoint.m_magY) / m_scale.m_magY,
+                            (m_averages[5].getAverage() - m_midpoint.m_magZ) / m_scale.m_magZ);
   }
   
   FloatHeading getCurrent()
@@ -98,7 +129,8 @@ class HeadingSensor
                               0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF);
   Heading m_max = new Heading(0x80000000, 0x80000000, 0x80000000,
                               0x80000000, 0x80000000, 0x80000000);
-  FloatHeading m_midpoint;
-  FloatHeading m_scale;
+  FloatHeading    m_midpoint;
+  FloatHeading    m_scale;
+  MovingAverage[] m_averages;
 };
 
