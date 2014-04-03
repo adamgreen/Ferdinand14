@@ -56,11 +56,11 @@ void draw()
   
   // To create a rotation matrix, we need all 3 basis vectors so calculate the vector which
   // is orthogonal to both the down and north vectors (ie. the normalized cross product).
-  PVector orth = north.cross(down);
-  orth.normalize();
+  PVector west = north.cross(down);
+  west.normalize();
   applyMatrix(north.x, north.y, north.z, 0.0,
               down.x, down.y, down.z, 0.0,
-              orth.x, orth.y, orth.z, 0.0,
+              west.x, west.y, west.z, 0.0,
               0.0, 0.0, 0.0, 1.0);
 
   // Draw four sides of box with different colours on each.
