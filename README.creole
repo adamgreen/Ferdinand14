@@ -1,18 +1,4 @@
-==Overview
-Xandon lent me a 6-DOF (3-axis gyroscope and 3-axis accelerometer) from Sparkfun and a 3-axis compass (3-axis
-accelerometer and 3-axis magnetometer) from Pololu.  I want to try fusing the data together from the magnetometers and
-gyroscopes to obtain a filtered robot heading.
-
-
-==Parts
-I think these are the parts that I am working with:
-* [[http://www.pololu.com/product/1250 | LSM303DLH 3D Compass and Accelerometer Carrier with Voltage Regulators]]
-* [[https://www.sparkfun.com/products/retired/10010 | IMU Analog Combo Board Razor - 6DOF Ultra-Thin IMU]]
-
-
-==References
-The datasheets for the various sensors that I believe are contained on these boards can be found
-[[https://github.com/adamgreen/heading/tree/master/docs | here]].
-
-A good Arduino code sample from Pololu for the LSM303 devices can be found
-[[https://github.com/pololu/lsm303-arduino/blob/master/LSM303/LSM303.cpp | here]].
+==Work in Progress!
+Tracking of the work I am doing for a robot to compete in the
+[[http://www.robothon.org/robothon/robo-magellan.php | Seattle Robotics Society Robo-Magellan]] to be held at
+[[http://www.robothon.org/robothon/index.php | Seattle Center on September 20, 2014]].
