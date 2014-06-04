@@ -15,7 +15,7 @@ import processing.serial.*;
 HeadingSensor g_headingSensor;
 PMatrix3D     g_baseRotation;
 PMatrix3D     g_rotationMatrix;
-boolean       g_zeroRotation = true;
+boolean       g_zeroRotation = false;
 
 void setup() 
 {
@@ -70,7 +70,7 @@ void draw()
   }
 
   // Make the current rotation relative to base orientation.
-  g_rotationMatrix.preApply(g_baseRotation);
+  // UNDONE: g_rotationMatrix.preApply(g_baseRotation);
   applyMatrix(g_rotationMatrix);
 
   // Draw four sides of box with different colours on each.
