@@ -2,3 +2,39 @@
 Tracking of the work I am doing for a robot to compete in the
 [[http://www.robothon.org/robothon/robo-magellan.php | Seattle Robotics Society Robo-Magellan]] to be held at
 [[http://www.robothon.org/robothon/index.php | Seattle Center on September 20, 2014]].
+
+
+==June 3, 2014
+The rules for the SRS Robo-Magellan competition can be found
+[[http://www.robothon.org/robothon/robo-magellan.php | here]]. The basic goal of this competition is to have an
+autonomous robot that can navigate between traffic cones that have been placed around the area just in front of the
+Seattle Center Armory.
+
+===Robothon 2014
+Xandon contacted a few of us on the [[http://www.seattlerobotics.org/contact.php#Monday | SRS IRC channel]] last night
+to see if any of us would like to join him in preparing a robot to compete in this year's competition (almost 4
+months away.)  Count me in!
+
+Xandon had lent me some sensors after last year's Robothon so that I could play with them to see if I could build a
+robust heading sensor to help with Robo-Magellan outdoor navigation.  Over the past several months I have been able to
+fuse the accelerometer and magnetometer data from the sensors together to give a pretty accurate 3D orientation
+measurement when the device is static (ie. not moving.)  If we could augment this measurement with readings from gyros
+as well then I think it would be a very useful sensor package for a Robo-Magellan competitor.
+
+===My Top Priority
+I think it would be nice if Xandon and I could have the same IMU sensors so that both of us can test and develop code
+at the same time.  One of the sensors that I was currently using isn't available from Pololu anymore.  I thought it
+would make sense to switch to a part that was easy to obtain so that we could all have the same IMU package available
+to us.
+
+====Sparkfun 9 Degrees of Freedom - Sensor Stick
+{{https://cdn.sparkfun.com//assets/parts/5/6/0/5/10724-01b.jpg}}
+
+I have decided that I would like to try switching to
+[[https://www.sparkfun.com/products/10724 | Sparkfun's 9DoF Sensor Stick]] which contains:
+* **ADXL345 accelerometer**
+* **HMC5883L magnetometer**
+* **ITG-3200 MEMS gyro**
+
+I ordered one of these devices from Sparkfun this morning and it has already shipped.  The FedEx tracking information
+currently indicates that it should be in my eager little hands by Friday.
