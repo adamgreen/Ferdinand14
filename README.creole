@@ -1,7 +1,20 @@
 ==Work in Progress!
+{{http://www.robothon.org/robothon/images/srslogo.gif}}
 Tracking of the work I am doing for a robot to compete in the
 [[http://www.robothon.org/robothon/robo-magellan.php | Seattle Robotics Society Robo-Magellan]] to be held at
 [[http://www.robothon.org/robothon/index.php | Seattle Center on September 20, 2014]].
+
+
+==June 4, 2014
+While waiting for my new [[https://www.sparkfun.com/products/10724 | Sparkfun 9DoF Sensor Stick]] to arrive, I am doing
+a bit of **light** reading to learn more about [[http://en.wikipedia.org/wiki/Kalman_filter | Kalman filters]].  I plan
+to use Kalman filtering to improve the robustness of my IMU by fusing in the gyro readings with the accelerometer and
+magnetometer readings that I am already using.  This light reading currently consists of pulling the 700+ page
+[[http://www.amazon.com/Fundamentals-Kalman-Filtering-Astronautics-Aeronautics/dp/1563476940 | Fundamentals of Kalman Filtering: A Practical Approach by Paul Zarchan and Howard Musoff]]
+book off of my shelf to start the fun learning process.  If you don't see me here again anytime soon, you know what
+happened to me...my brain exploded :)
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140605-01.jpg}}
 
 
 ==June 3, 2014
@@ -15,11 +28,11 @@ Xandon contacted a few of us on the [[http://www.seattlerobotics.org/contact.php
 to see if any of us would like to join him in preparing a robot to compete in this year's competition (almost 4
 months away.)  Count me in!
 
-Xandon had lent me some sensors after last year's Robothon so that I could play with them to see if I could build a
-robust heading sensor to help with Robo-Magellan outdoor navigation.  Over the past several months I have been able to
-fuse the accelerometer and magnetometer data from the sensors together to give a pretty accurate 3D orientation
-measurement when the device is static (ie. not moving.)  If we could augment this measurement with readings from gyros
-as well then I think it would be a very useful sensor package for a Robo-Magellan competitor.
+Xandon had lent me some sensors after last year's Robothon so that I could play with them to see if I
+could build a robust heading sensor to help with Robo-Magellan outdoor navigation.  Over the past several months I have
+been able to fuse the accelerometer and magnetometer data from the sensors together to give a pretty accurate 3D
+orientation measurement when the device is static (ie. not moving.)  If we could augment this measurement with readings
+from gyros as well then I think it would be a very useful sensor package for a Robo-Magellan competitor.
 
 ===My Top Priority
 I think it would be nice if Xandon and I could have the same IMU sensors so that both of us can test and develop code
