@@ -5,6 +5,16 @@ Tracking of the work I am doing for a robot to compete in the
 [[http://www.robothon.org/robothon/index.php | Seattle Center on September 20, 2014]].
 
 
+==June 6,2014
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140606-01.jpg}}
+
+My Sparkfun order arrived this morning.  Within the large red package of electronic goodies was the Sparkfun 9DoF Sensor
+Stick.  I now have almost no excuses to not solder on a header and start porting my orientation code.  However I do want
+to give myself another day or two to try getting my current
+[[https://github.com/adamgreen/pinkySim#readme | simulator project]]
+finished up before I switch gears and dedicate a substantial amount of time to Robo-Magellan.
+
+
 ==June 4, 2014
 While waiting for my new [[https://www.sparkfun.com/products/10724 | Sparkfun 9DoF Sensor Stick]] to arrive, I am doing
 a bit of **light** reading to learn more about [[http://en.wikipedia.org/wiki/Kalman_filter | Kalman filters]].  I plan
