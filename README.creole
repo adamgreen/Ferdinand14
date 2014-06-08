@@ -19,7 +19,7 @@ finished up before I switch gears and dedicate a substantial amount of time to R
 While waiting for my new [[https://www.sparkfun.com/products/10724 | Sparkfun 9DoF Sensor Stick]] to arrive, I am doing
 a bit of **light** reading to learn more about [[http://en.wikipedia.org/wiki/Kalman_filter | Kalman filters]].  I plan
 to use Kalman filtering to improve the robustness of my IMU by fusing in the gyro readings with the accelerometer and
-magnetometer readings that I am already using.  This light reading currently consists of pulling the 700+ page
+magnetometer readings that I am already using.  This light reading currently consists of pulling this 700+ page
 [[http://www.amazon.com/Fundamentals-Kalman-Filtering-Astronautics-Aeronautics/dp/1563476940 | Fundamentals of Kalman Filtering: A Practical Approach by Paul Zarchan and Howard Musoff]]
 book off of my shelf to start the fun learning process.  If you don't see me here again anytime soon, you know what
 happened to me...my brain exploded :)
