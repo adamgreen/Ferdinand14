@@ -5,14 +5,14 @@ Tracking of the work I am doing for a robot to compete in the
 [[http://www.robothon.org/robothon/index.php | Seattle Center on September 20, 2014]].
 
 
-==June 7, 2014
+==June 8, 2014
 Today, I finished reading the data sheets for the Analog Devices ADXL345 accelerometer, Honeywell HMC5883L magnetometer,
 and InvenSense ITG-3200 gyroscope sensors.  Copies of these data sheets can be found
 [[https://github.com/adamgreen/Ferdinand14/tree/master/docs | here]].
 
 **Notes:**\\
 * Sampling Rates:
-** ADX345: 6.25 - 3200 Hz in multiples of 2
+** ADX345: 6.25 - 3200 Hz in multiples of 2x
 ** ITG-3200: 3.9 - 8000 Hz (maximum filter bandwidth is 256Hz though)
 ** HMC58853L:  0 - 160 Hz in manual mode
 * 100 Hz is a sampling rate common to all 3 devices.  It should also be possible to oversample the faster sensors and
