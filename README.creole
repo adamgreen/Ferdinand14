@@ -4,6 +4,9 @@ Tracking of the work I am doing for a robot to compete in the
 [[http://www.robothon.org/robothon/robo-magellan.php | Seattle Robotics Society Robo-Magellan]] to be held at
 [[http://www.robothon.org/robothon/index.php | Seattle Center on September 20, 2014]].
 
+===Points of Interest
+[[https://github.com/adamgreen/Ferdinand14/tree/master#clone-this-repo-and-its-submodules | How to Clone]]\\
+
 
 ==June 9, 2014
 ===Clone this Repo and its Submodules
