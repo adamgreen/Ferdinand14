@@ -12,9 +12,9 @@ and InvenSense ITG-3200 gyroscope sensors.  Copies of these data sheets can be f
 
 **Notes:**\\
 * Sampling Rates:
-** ADX345: 6.25 - 3200 Hz in multiples of 2x
+** ADXL345: 6.25 - 3200 Hz in multiples of 2x
 ** ITG-3200: 3.9 - 8000 Hz (maximum filter bandwidth is 256Hz though)
-** HMC58853L:  0 - 160 Hz in manual mode
+** HMC5883L:  0 - 160 Hz in manual mode
 * 100 Hz is a sampling rate common to all 3 devices.  It should also be possible to oversample the faster sensors and
 average them to reduce noise.
 * All 3 of the sensors support I2C up to 400 kHz.
@@ -29,6 +29,12 @@ filtering on the board to help reduce noise.
 * The ITG-3200 has a built in temperature sensor that can be read at the same time as the gyro measurements.
 * The Sparkfun board should be mounted close to PCB standoffs to dampen vibrations being coupled into the accelerometer.
 * Don't run any current carrying traces under the sensor board, especially the magnetometer.
+
+I2C Addresses as configured on Sparkfun sensor board:
+|= Sensor  |= I2C Address |
+| ADXL345  | 0x53 |
+| HMC5883L | 0x1E |
+| ITG-3200 | 0x68 |
 
 At this point, I have enough information to start porting my existing orientation code to use these new sensors.  I plan
 to start on that porting work tomorrow.
