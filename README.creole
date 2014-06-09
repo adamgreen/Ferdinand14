@@ -5,6 +5,57 @@ Tracking of the work I am doing for a robot to compete in the
 [[http://www.robothon.org/robothon/index.php | Seattle Center on September 20, 2014]].
 
 
+==June 9, 2014
+===Clone this Repo and its Submodules
+Today, as I got started on porting the firmware to utilize the new sensors, I noticed that I hadn't made the
+[[https://github.com/adamgreen/gcc4mbed | GCC4MBED]] dependency explicit in the Ferdinand2014 project.  To remedy this
+problem, I have added it as a submodule.
+
+Cloning now requires a few more options to fetch all of the necessary code.
+
+{{{
+git clone --recursive git@github.com:adamgreen/Ferdinand14.git
+}}}
+
+* In the gcc4mbed subdirectory you will find multiple install scripts.  Run the install script appropriate for your
+platform:
+** Windows: win_install.cmd
+** OS X: mac_install
+** Linux: linux_install
+* You can then run the BuildShell script which will be created during the install to properly configure the PATH
+environment variable.  You may want to edit this script to further customize your development environment.
+
+**Important Notes:**
+* OS X Mountain Lion and newer will fail to execute mac_install by simply clicking on it.  Instead right click on
+mac_install in the Finder, select the Open option, and then click the Open button in the resulting security warning
+dialog.
+* If the installation should fail, please refer to win_install.log, linux_install.log, or mac_install.log.  It will
+contain the details of the installation process and any errors that were encountered.
+
+===Wiring up the Sparkfun 9 Degrees of Freedom - Sensor Stick
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140609-02.jpg}}
+
+I now have the 4-pin male header soldered onto the Sparkfun 9 DoF Sensor Stick and it now replaces the older LSM303DLH
+sensor breakout board that I was previously using on my breadboard.  There aren't a lot of wires to connect for this
+sensor:
+
+|= 9DoF Sensor Stick |= mbed Pin |
+| Vcc | p40 - VU (5.0v USB Out) |
+| Gnd | p1 - GND |
+| SDA | p9 - I2C SDA |
+| SCL | p10 - I2C SCL |
+
+Nothing left to do now except for starting to write some code.  Yippee!
+
+===Test Platform
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140609-01.jpg}}
+
+I had also added a [[https://www.sparkfun.com/products/11056 | Wild Thumper 6WD Chassis]] to last week's Sparkfun order.
+I plan to use this for early testing of my sensor prototypes.  It is small and light which means that it is easy to
+transport but it will also bounce around a lot in outdoor environments which is a very good stress test for things like
+the IMU and camera solutions.
+
+
 ==June 8, 2014
 Today, I finished reading the data sheets for the Analog Devices ADXL345 accelerometer, Honeywell HMC5883L magnetometer,
 and InvenSense ITG-3200 gyroscope sensors.  Copies of these data sheets can be found
