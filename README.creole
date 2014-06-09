@@ -5,7 +5,36 @@ Tracking of the work I am doing for a robot to compete in the
 [[http://www.robothon.org/robothon/index.php | Seattle Center on September 20, 2014]].
 
 
-==June 6,2014
+==June 7, 2014
+Today, I finished reading the data sheets for the Analog Devices ADXL345 accelerometer, Honeywell HMC5883L magnetometer,
+and InvenSense ITG-3200 gyroscope sensors.  Copies of these data sheets can be found
+[[https://github.com/adamgreen/Ferdinand14/tree/master/docs | here]].
+
+**Notes:**\\
+* Sampling Rates:
+** ADX345: 6.25 - 3200 Hz in multiples of 2
+** ITG-3200: 3.9 - 8000 Hz (maximum filter bandwidth is 256Hz though)
+** HMC58853L:  0 - 160 Hz in manual mode
+* 100 Hz is a sampling rate common to all 3 devices.  It should also be possible to oversample the faster sensors and
+average them to reduce noise.
+* All 3 of the sensors support I2C up to 400 kHz.
+* The Sparkfun board only exposes the SDA and SCL data lines along with Vcc and Gnd.
+** The board doesn't expose any of the interrupt signals so they can't be used.  Need to just rely on the I2C exposed
+registers.
+* The analog and digital supplies are shared across all sensors.  This can allow digital ripple onto the analog supply,
+introducing noise in the analog readings.  The ADXL345 data sheet actually recommends more filtering of the analog
+supply than what is found on the Sparkfun board when a single supply is used like this.  I might need to increase the
+filtering on the board to help reduce noise.
+* The self-test feature of the HMC58853L can be used at runtime to compensate for temperature.
+* The ITG-3200 has a built in temperature sensor that can be read at the same time as the gyro measurements.
+* The Sparkfun board should be mounted close to PCB standoffs to dampen vibrations being coupled into the accelerometer.
+* Don't run any current carrying traces under the sensor board, especially the magnetometer.
+
+At this point, I have enough information to start porting my existing orientation code to use these new sensors.  I plan
+to start on that porting work tomorrow.
+
+
+==June 6, 2014
 {{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140606-01.jpg}}
 
 My Sparkfun order arrived this morning.  Within the large red package of electronic goodies was the Sparkfun 9DoF Sensor
