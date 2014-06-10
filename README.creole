@@ -50,6 +50,34 @@ sensor:
 
 Nothing left to do now except for starting to write some code.  Yippee!
 
+===Porting Firmware
+Tonight, I started porting the firmware running on the [[https://mbed.org/platforms/mbed-LPC1768/ | mbed 1768]] to use
+the ADXL345 accelerometer and HMC5883L magnetometer instead of the older LSM303DLH device.  I was able to get it working
+with the new sensors in a few hours.  It nows reads the sensors and sends the readings to the PC over the USB based
+serial port as comma separated text values.  This is an example of a few lines captured during a recent debug run:
+{{{
+15,7,229,-184,-139,-661
+20,4,226,-186,-139,-661
+20,6,237,-186,-138,-661
+16,5,237,-187,-137,-662
+}}}
+My initial look at the data would appear to indicate that the magnetometer data is probably a bit cleaner than the
+previous sensor.  The internal averaging of 8 samples per data read probably helps a lot.  There does however appear to
+be a great deal of noise on the accelerometer readings.  The ADXL345 sensors were already 4x less sensitive than the
+ones in the LSM303DLH device so the extra noise only makes things worse.
+
+I suspect that a good proportion of the accelerometer noise comes from **flaws in the Sparkfun 9DoF board design
+itself**.  It uses a **single supply for both the analog and digital domain**.  This was **not recommended by Analog
+Devices** in the ADXL345 data sheet and if it was to be done, it recommended a lot more filtering to be used than what
+Sparkfun used.  I can think of a few solutions:
+* Add capacitors to the analog supply on the ADXL345 as recommended in the data sheet.
+* Place a ferrite bead in series with the analog supply as also recommended by the data sheet.
+* Use software to further filter the data.  While the HMC5883L magnetometer can only be sampled at 160Hz maximum, the
+ADXL345 can be sampled at 3200Hz.  One solution would be to oversample the ADXL345 at the full 3200Hz and then average
+several readings together to present filtered data at the lower rate achievable by the magnetometer.
+
+As I am a software guy, I will try the last solution first :)
+
 ===Test Platform
 {{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140609-01.jpg}}
 
