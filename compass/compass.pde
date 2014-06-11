@@ -13,7 +13,6 @@
 import processing.serial.*;
 
 HeadingSensor g_headingSensor;
-boolean       g_sensorFlat = true;
 boolean       g_tiltCompensated = true;
 boolean       g_smoothed = true;
 
@@ -26,9 +25,9 @@ void setup()
   Serial port = new Serial(this, "/dev/tty.usbmodem1412", 9600);
 
   // These min/max configuration values were found by rotating my sensor setup
-  // and dumping min/max values with the d key.
-  Heading min = new Heading(-16592,-16112,-16144,-648,-571,-526);
-  Heading max = new Heading(16448,16400,16448,526,602,500);
+  // and dumping min/max values with the d key in magView.
+  Heading min = new Heading(-242, -258, -280, -588, -888, -675);
+  Heading max = new Heading(273, 260, 233, 721, 414, 517);
   Heading filterWidths = new Heading(4, 4, 4, 16, 16, 16);
   g_headingSensor = new HeadingSensor(port, min, max, filterWidths);
 }
@@ -44,7 +43,8 @@ void draw()
     heading = g_headingSensor.getCurrent();
   
   // The magnetometer output represents the north vector.
-  PVector north = new PVector(heading.m_magX, heading.m_magY, heading.m_magZ);
+  // Swizzling magnetometer axis to match the accelerometer.
+  PVector north = new PVector(heading.m_magY, -heading.m_magX, heading.m_magZ);
   
   if (g_tiltCompensated)
   {
@@ -58,10 +58,7 @@ void draw()
   }
 
   float headingAngle = 0;
-  if (g_sensorFlat)
-    headingAngle = atan2(north.y, north.x);
-  else
-    headingAngle = atan2(north.y, north.z);
+  headingAngle = atan2(-north.y, north.x);
 
   lights();
   translate(width/2, height/2, 0);
@@ -142,12 +139,6 @@ void keyPressed()
     print("max: ");
     g_headingSensor.getMax().print();
     println();
-    break;
-  case 'f':
-    g_sensorFlat = true;
-    break;
-  case 'r':
-    g_sensorFlat = false;
     break;
   case 'c':
     g_tiltCompensated = true;

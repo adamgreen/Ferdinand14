@@ -10,39 +10,36 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
-#ifndef LSM303DLH_H_
-#define LSM303DLH_H_
+#ifndef HMC5883L_H_
+#define HMC5883L_H_
 
 #include <mbed.h>
 #include "Int16Vector.h"
 
 
-class LSM303DLH
+class HMC5883L
 {
 public:
-    LSM303DLH(PinName sdaPin, PinName sclPin, int sa0PinValue = 0, int i2cFrequency = 100000);
-    
+    HMC5883L(I2C* pI2C, int address = 0x3C);
+
     int         didInitFail() { return m_failedInit; }
     int         didIoFail() { return m_failedIo; }
-    Int16Vector getAccelerometerVector();
-    Int16Vector getMagnetometerVector();
-    
+    Int16Vector getVector();
+
 protected:
-    void initDevice();
-    void initAccelerometer();
-    void writeAccelerometerRegister(char registerAddress, char value);
-    void writeRegister(int i2cAddress, char registerAddress, char value);
     void initMagnetometer();
     void writeMagnetometerRegister(char registerAddress, char value);
-    void readAccelerometerRegisters(char registerAddress, void* pBuffer, size_t bufferSize);
-    void readMagnetometerRegisters(char registerAddress, void* pBuffer, size_t bufferSize);
+    void writeRegister(int i2cAddress, char registerAddress, char value);
+    void waitForDataReady();
+    void readMagnetometerRegister(char registerAddress, void* pBuffer);
     void readRegisters(int i2cAddress, char registerAddress, void* pBuffer, size_t bufferSize);
-    Int16Vector convertMagnetometerBytesToVector(char byteArray[]);
-    
-    I2C     m_i2c;
+    void readMagnetometerRegisters(char registerAddress, void* pBuffer, size_t bufferSize);
+
+    I2C*    m_pI2C;
+    Ticker  m_ticker;
     int     m_failedInit;
     int     m_failedIo;
-    int     m_accelAddress;
+    int     m_address;
 };
 
-#endif /* LSM303DLH_H_ */
+#endif /* HMC5883L_H_ */

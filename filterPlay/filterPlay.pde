@@ -28,9 +28,9 @@ void setup()
   Serial port = new Serial(this, "/dev/tty.usbmodem1412", 9600);
 
   // These min/max configuration values were found by rotating my sensor setup
-  // and dumping min/max values with the d key.
-  Heading min = new Heading(-16592,-16112,-16144,-648,-571,-526);
-  Heading max = new Heading(16448,16400,16448,526,602,500);
+  // and dumping min/max values with the d key in magView.
+  Heading min = new Heading(-242, -258, -280, -588, -888, -675);
+  Heading max = new Heading(273, 260, 233, 721, 414, 517);
   Heading filterWidths = new Heading(4, 4, 4, 16, 16, 16);
   g_headingSensor = new HeadingSensor(port, min, max, filterWidths);
 }

@@ -12,34 +12,40 @@
 */
 /* Test harness for my heading class. */
 #include <mbed.h>
-#include "LSM303DLH.h"
-
+#include "ADXL345.h"
+#include "HMC5883L.h"
 
 void printVector(Int16Vector* pVector);
 
 
-int main() 
+int main()
 {
-    static LSM303DLH lsm303dlh(p9, p10);
-    
-    if (lsm303dlh.didInitFail())
-        error("Encountered I2C I/O error during init.\n");
-    
+    static I2C     i2c(p9, p10);
+    i2c.frequency(400000);
+
+    static ADXL345  accelerometer(&i2c);
+    if (accelerometer.didInitFail())
+        error("Encountered I2C I/O error during accelerometer init.\n");
+
+    static HMC5883L magnetometer(&i2c);
+    if (magnetometer.didInitFail())
+        error("Encountered I2C I/O error during magnetometer init.\n");
+
     for (;;)
     {
-        Int16Vector accelerometerVector = lsm303dlh.getAccelerometerVector();
-        if (lsm303dlh.didIoFail())
+        Int16Vector accelerometerVector = accelerometer.getVector();
+        if (accelerometer.didIoFail())
             error("Encountered I2C I/O error during accelerometer vector fetch.\n");
         printVector(&accelerometerVector);
         printf(",");
 
-        Int16Vector magnetometerVector = lsm303dlh.getMagnetometerVector();
-        if (lsm303dlh.didIoFail())
+        Int16Vector magnetometerVector = magnetometer.getVector();
+        if (magnetometer.didIoFail())
             error("Encountered I2C I/O error during magnetometer vector fetch.\n");
         printVector(&magnetometerVector);
         printf("\n");
     }
-    
+
     return 0;
 }
 
