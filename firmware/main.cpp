@@ -14,8 +14,13 @@
 #include <mbed.h>
 #include "ADXL345.h"
 #include "HMC5883L.h"
+#include "Int32Vector.h"
 
-void printVector(Int16Vector* pVector);
+template<class T>
+void printVector(T* pVector)
+{
+    printf("%ld,%ld,%ld", (int32_t)pVector->m_x, (int32_t)pVector->m_y, (int32_t)pVector->m_z);
+}
 
 
 int main()
@@ -33,9 +38,21 @@ int main()
 
     for (;;)
     {
-        Int16Vector accelerometerVector = accelerometer.getVector();
-        if (accelerometer.didIoFail())
-            error("Encountered I2C I/O error during accelerometer vector fetch.\n");
+        Int32Vector accelerometerVector;
+
+        for (int i = 0 ; i < 32 ; i++)
+        {
+            Int16Vector sampleVector = accelerometer.getVector();
+            if (accelerometer.didIoFail())
+                error("Encountered I2C I/O error during accelerometer vector fetch.\n");
+            accelerometerVector.add(&sampleVector);
+        }
+
+        // UNDONE: I think I will want to revert this later and send the full sum over to the PC.
+        accelerometerVector.m_x /= 32;
+        accelerometerVector.m_y /= 32;
+        accelerometerVector.m_z /= 32;
+
         printVector(&accelerometerVector);
         printf(",");
 
@@ -47,9 +64,4 @@ int main()
     }
 
     return 0;
-}
-
-void printVector(Int16Vector* pVector)
-{
-    printf("%d,%d,%d", pVector->m_x, pVector->m_y, pVector->m_z);
 }

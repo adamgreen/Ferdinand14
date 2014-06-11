@@ -104,7 +104,7 @@ void ADXL345::initAccelerometer()
 {
     do
     {
-        writeAccelerometerRegister(BW_RATE, RATE_100);
+        writeAccelerometerRegister(BW_RATE, RATE_3200);
         if (m_failedIo)
             break;
         writeAccelerometerRegister(DATA_FORMAT, FULL_RES | RANGE_16G);
