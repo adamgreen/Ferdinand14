@@ -8,6 +8,48 @@ Tracking of the work I am doing for a robot to compete in the
 [[https://github.com/adamgreen/Ferdinand14/tree/master#clone-this-repo-and-its-submodules | How to Clone]]\\
 
 
+==June 10, 2014
+Last night and today were very productive.  Last night I was able to get the firmware running on the mbed to properly
+read the ADXL345 accelerometer and HMC5883L magnetometer to transfer back to the PC over the USB serial connection.
+Today I updated the Processing samples to work with the new sensor readings.  For the most part, this only required two
+major changes to the existing code:
+* Updating the accelerometer and magnetometer calibration settings in all of the samples:
+** These calibration values provide the minimum and maximum readings obtained from the sensors when detecting gravity
+and the earth's magnetic field.
+** This calibration data is then used to adjust the zero point for each sensor axis (ie. it is not always the case that
+   a zero reading from a sensor corresponds to a real world zero value since there is often an error bias in the sensors.)
+** Also appropriately scales the readings for each sensor:
+*** Scales the minimum and maximum accelerometer values to represent -1.0g and 1.0g.
+*** Scales each of the magnetometer axis to remove any elliptic hard iron distortions.
+* Permuting the X, Y, and Z values as required.  This is required for two reasons:
+** The X, Y, and Z axis of the sensors don't necessarily line up with the X, Y, and Z axis used for rendering 3D objects
+   in Processing samples such as Orientation.pde.
+** Each of the 3 sensors included on the Sparkfun 9DoF board are arranged with their axis pointing in different directions.
+
+===Good News
+The HMC5883L magnetometer data output is much cleaner than what I previously obtained from the LSM303DLH.  The fact that
+the sensor itself can be configured to average together 8 samples per reading helps a lot in this area.
+
+===Bad News
+The ADXL345 accelerometer data output is much noisier than the LSM303DLH.  This on top of the fact that it isn't as
+sensitive (the LSM303DLH is 950 - 1055 LSB/g and the ADXL345 is only 256 LSB/g) makes the 3D orientation data much more
+shaky.
+
+===I2C Signals
+I figured before I cranked the I2C rate up to 400kHz from 100kHz, I should take a look at the rise times of the SCL and
+SDA lines with the oscilloscope.  When I scoped the SCL line what did I see?  This!
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140610-01.jpg}}
+
+This rise time looks a lot worse than the 300 nsec requirement I see in the sensor data sheets.  It would appear that
+the 4.7k ohm pull-up resistors installed by Sparkfun might be a bit much.  I added some 2.2k ohm resistors in parallel
+to see what the resulting signal would look like:
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140610-02.jpg}}
+
+I think I will leave those extra resistors there!
+
+
 ==June 9, 2014
 ===Clone this Repo and its Submodules
 Today, as I got started on porting the firmware to utilize the new sensors, I noticed that I hadn't made the
