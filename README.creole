@@ -8,6 +8,26 @@ Tracking of the work I am doing for a robot to compete in the
 [[https://github.com/adamgreen/Ferdinand14/tree/master#clone-this-repo-and-its-submodules | How to Clone]]\\
 
 
+==June 12, 2014
+I spent some time yesterday trying to figure out how I could fix the ADXL345 accelerometer noise.  I had originally
+thought that oversampling the accelerometer by reading 32 samples for every 1 of the magnetometer samples (accelerometer
+sampled at 3200Hz and magnetometer sampled at 100Hz) and just using the average of those 32 samples would be enough but
+that resulted in the same amount of wild fluctuation in the readings.  When I attached the oscilloscope as close to the
+analog supply line as possible, I saw ripple at ~20kHz but the amplitude of that ripple would vary at a much lower
+frequency.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140612-02.jpg}}
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140612-01.jpg}}
+
+I ordered some 10uF tantalum SMD capacitors to gang up with the existing 0.1uF ceramic capacitors already on that supply
+line but while I was waiting, I found a through hole tantalum and bodged it on instead.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140611-01.jpg}}
+
+The result is an ugly board but a usable accelerometer.  With this hardware fix, the 32x oversampling and a bit more low
+pass filtering on the PC side, the samples now work much better than they have ever worked in the past.
+
+
 ==June 10, 2014
 Last night and today were very productive.  Last night I was able to get the firmware running on the mbed to properly
 read the ADXL345 accelerometer and HMC5883L magnetometer to transfer back to the PC over the USB serial connection.
