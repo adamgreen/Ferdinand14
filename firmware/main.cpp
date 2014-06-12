@@ -47,12 +47,6 @@ int main()
                 error("Encountered I2C I/O error during accelerometer vector fetch.\n");
             accelerometerVector.add(&sampleVector);
         }
-
-        // UNDONE: I think I will want to revert this later and send the full sum over to the PC.
-        accelerometerVector.m_x /= 32;
-        accelerometerVector.m_y /= 32;
-        accelerometerVector.m_z /= 32;
-
         printVector(&accelerometerVector);
         printf(",");
 
