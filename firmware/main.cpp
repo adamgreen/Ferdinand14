@@ -14,6 +14,7 @@
 #include <mbed.h>
 #include "ADXL345.h"
 #include "HMC5883L.h"
+#include "ITG3200.h"
 #include "Int32Vector.h"
 
 template<class T>
@@ -36,6 +37,10 @@ int main()
     if (magnetometer.didInitFail())
         error("Encountered I2C I/O error during magnetometer init.\n");
 
+    static ITG3200 gyro(&i2c);
+    if (gyro.didInitFail())
+        error("Encountered I2C I/O error during gyro init.\n");
+
     for (;;)
     {
         Int32Vector accelerometerVector;
@@ -54,6 +59,12 @@ int main()
         if (magnetometer.didIoFail())
             error("Encountered I2C I/O error during magnetometer vector fetch.\n");
         printVector(&magnetometerVector);
+        printf(",");
+
+        Int16Vector gyroVector = gyro.getVector();
+        if (gyro.didIoFail())
+            error("Encountered I2C I/O error during gyro vector fetch.\n");
+        printVector(&gyroVector);
         printf("\n");
     }
 

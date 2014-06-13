@@ -46,7 +46,7 @@ class HeadingSensor
       return;
       
     String[] tokens = splitTokens(line, ",\n");
-    if (tokens.length == 6)
+    if (tokens.length == 9)
     {
       m_currentRaw.m_accelX = int(tokens[0]);
       m_currentRaw.m_accelY = int(tokens[1]);
@@ -55,13 +55,6 @@ class HeadingSensor
       m_currentRaw.m_magY = int(tokens[4]);
       m_currentRaw.m_magZ = int(tokens[5]);
    
-   // UNDONE: I am just trying to catch an errant value here.   
-   if (m_currentRaw.m_accelZ < -40000)
-   {
-     println("m_accelZ = " + m_currentRaw.m_accelZ);
-     println("line = " + line);
-     exit();
-   }
       m_max = m_max.max(m_currentRaw);
       m_min = m_min.min(m_currentRaw);
     }
