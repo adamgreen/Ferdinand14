@@ -36,7 +36,6 @@ protected:
     void readAccelerometerRegisters(char registerAddress, void* pBuffer, size_t bufferSize);
 
     I2C*    m_pI2C;
-    Ticker  m_ticker;
     int     m_failedInit;
     int     m_failedIo;
     int     m_address;
