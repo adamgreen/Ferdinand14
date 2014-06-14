@@ -14,31 +14,20 @@
 #define ADXL345_H_
 
 #include <mbed.h>
+#include "SensorBase.h"
 #include "Int16Vector.h"
 
 
-class ADXL345
+class ADXL345 : public SensorBase
 {
 public:
     ADXL345(I2C* pI2C, int address = 0xA6);
 
-    int         didInitFail() { return m_failedInit; }
-    int         didIoFail() { return m_failedIo; }
     Int16Vector getVector();
 
 protected:
     void initAccelerometer();
-    void writeAccelerometerRegister(char registerAddress, char value);
-    void writeRegister(int i2cAddress, char registerAddress, char value);
     void waitForDataReady();
-    void readAccelerometerRegister(char registerAddress, void* pBuffer);
-    void readRegisters(int i2cAddress, char registerAddress, void* pBuffer, size_t bufferSize);
-    void readAccelerometerRegisters(char registerAddress, void* pBuffer, size_t bufferSize);
-
-    I2C*    m_pI2C;
-    int     m_failedInit;
-    int     m_failedIo;
-    int     m_address;
 };
 
 #endif /* ADXL345_H_ */

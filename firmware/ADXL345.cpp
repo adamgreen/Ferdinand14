@@ -93,10 +93,8 @@
 #define RANGE_16G           0x3
 
 
-ADXL345::ADXL345(I2C* pI2C, int address /* = 0xA6 */)
+ADXL345::ADXL345(I2C* pI2C, int address /* = 0xA6 */) : SensorBase(pI2C, address)
 {
-    m_pI2C = pI2C;
-    m_address = address;
     initAccelerometer();
 }
 
@@ -104,13 +102,13 @@ void ADXL345::initAccelerometer()
 {
     do
     {
-        writeAccelerometerRegister(BW_RATE, RATE_3200);
+        writeRegister(BW_RATE, RATE_3200);
         if (m_failedIo)
             break;
-        writeAccelerometerRegister(DATA_FORMAT, FULL_RES | RANGE_16G);
+        writeRegister(DATA_FORMAT, FULL_RES | RANGE_16G);
         if (m_failedIo)
             break;
-        writeAccelerometerRegister(POWER_CTL, MEASURE);
+        writeRegister(POWER_CTL, MEASURE);
         if (m_failedIo)
             break;
     }
@@ -120,24 +118,12 @@ void ADXL345::initAccelerometer()
         m_failedInit = 1;
 }
 
-void ADXL345::writeAccelerometerRegister(char registerAddress, char value)
-{
-    writeRegister(m_address, registerAddress, value);
-}
-
-void ADXL345::writeRegister(int i2cAddress, char registerAddress, char value)
-{
-    char dataToSend[2] = { registerAddress, value };
-    
-    m_failedIo = m_pI2C->write(i2cAddress, dataToSend, sizeof(dataToSend), false);
-}
-
 Int16Vector ADXL345::getVector()
 {
     Int16Vector vector;
 
     waitForDataReady();
-    readAccelerometerRegisters(DATAX0, &vector, sizeof(vector));
+    readRegisters(DATAX0, &vector, sizeof(vector));
 
     return vector;
 }
@@ -148,24 +134,6 @@ void ADXL345::waitForDataReady()
 
     do
     {
-        readAccelerometerRegister(INT_SOURCE, &intStatus);
+        readRegister(INT_SOURCE, &intStatus);
     } while ((intStatus & DATA_READY) == 0);
-}
-
-void ADXL345::readAccelerometerRegister(char registerAddress, void* pBuffer)
-{
-    readRegisters(m_address, registerAddress, pBuffer, 1);
-}
-
-void ADXL345::readRegisters(int i2cAddress, char registerAddress, void* pBuffer, size_t bufferSize)
-{
-    m_failedIo = m_pI2C->write(i2cAddress, &registerAddress, sizeof(registerAddress), true);
-    if (m_failedIo)
-        return;
-    m_failedIo = m_pI2C->read(i2cAddress, (char*)pBuffer, bufferSize, false);
-}
-
-void ADXL345::readAccelerometerRegisters(char registerAddress, void* pBuffer, size_t bufferSize)
-{
-    readRegisters(m_address, registerAddress, pBuffer, bufferSize);
 }

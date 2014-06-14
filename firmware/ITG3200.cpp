@@ -69,12 +69,8 @@
 #define CLK_SEL_PLL_EXT_19_2MHZ 5
 
 
-
-
-ITG3200::ITG3200(I2C* pI2C, int address /* = 0xA6 */)
+ITG3200::ITG3200(I2C* pI2C, int address /* = 0xA6 */) : SensorBase(pI2C, address)
 {
-    m_pI2C = pI2C;
-    m_address = address;
     initGyro();
 }
 
@@ -82,20 +78,20 @@ void ITG3200::initGyro()
 {
     do
     {
-        writeGyroRegister(PWR_MGM, H_RESET);
+        writeRegister(PWR_MGM, H_RESET);
         if (m_failedIo)
             break;
-        writeGyroRegister(INT_CFG, LATCH_INT_EN | ITG_RDY_EN | RAW_RDY_EN);
+        writeRegister(INT_CFG, LATCH_INT_EN | ITG_RDY_EN | RAW_RDY_EN);
         if (m_failedIo)
             break;
-        writeGyroRegister(PWR_MGM, CLK_SEL_PLL_X);
+        writeRegister(PWR_MGM, CLK_SEL_PLL_X);
         if (m_failedIo)
             break;
         waitForPllReady();
-        writeGyroRegister(SMPLRT_DIV, (1000 / 100) - 1);
+        writeRegister(SMPLRT_DIV, (1000 / 100) - 1);
         if (m_failedIo)
             break;
-        writeGyroRegister(DLPF_FS, FS_SEL_2000 | DLPF_CFG_42HZ);
+        writeRegister(DLPF_FS, FS_SEL_2000 | DLPF_CFG_42HZ);
         if (m_failedIo)
             break;
     }
@@ -105,25 +101,13 @@ void ITG3200::initGyro()
         m_failedInit = 1;
 }
 
-void ITG3200::writeGyroRegister(char registerAddress, char value)
-{
-    writeRegister(m_address, registerAddress, value);
-}
-
-void ITG3200::writeRegister(int i2cAddress, char registerAddress, char value)
-{
-    char dataToSend[2] = { registerAddress, value };
-
-    m_failedIo = m_pI2C->write(i2cAddress, dataToSend, sizeof(dataToSend), false);
-}
-
 void ITG3200::waitForPllReady()
 {
     char intStatus = 0;
 
     do
     {
-        readGyroRegister(INT_STATUS, &intStatus);
+        readRegister(INT_STATUS, &intStatus);
     } while ((intStatus & ITG_RDY) == 0);
 }
 
@@ -133,7 +117,7 @@ Int16Vector ITG3200::getVector()
     Int16Vector vector;
 
     waitForDataReady();
-    readGyroRegisters(TEMP_OUT_H, bigEndianDataWithTemp, sizeof(bigEndianDataWithTemp));
+    readRegisters(TEMP_OUT_H, bigEndianDataWithTemp, sizeof(bigEndianDataWithTemp));
     if (m_failedIo)
         return vector;
 
@@ -150,24 +134,7 @@ void ITG3200::waitForDataReady()
 
     do
     {
-        readGyroRegister(INT_STATUS, &intStatus);
+        readRegister(INT_STATUS, &intStatus);
     } while ((intStatus & RAW_DATA_RDY) == 0);
 }
 
-void ITG3200::readGyroRegister(char registerAddress, void* pBuffer)
-{
-    readRegisters(m_address, registerAddress, pBuffer, 1);
-}
-
-void ITG3200::readRegisters(int i2cAddress, char registerAddress, void* pBuffer, size_t bufferSize)
-{
-    m_failedIo = m_pI2C->write(i2cAddress, &registerAddress, sizeof(registerAddress), true);
-    if (m_failedIo)
-        return;
-    m_failedIo = m_pI2C->read(i2cAddress, (char*)pBuffer, bufferSize, false);
-}
-
-void ITG3200::readGyroRegisters(char registerAddress, void* pBuffer, size_t bufferSize)
-{
-    readRegisters(m_address, registerAddress, pBuffer, bufferSize);
-}

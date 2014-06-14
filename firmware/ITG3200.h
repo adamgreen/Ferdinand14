@@ -15,31 +15,20 @@
 
 #include <mbed.h>
 #include "Int16Vector.h"
+#include "SensorBase.h"
 
 
-class ITG3200
+class ITG3200 : public SensorBase
 {
 public:
     ITG3200(I2C* pI2C, int address = 0xD0);
 
-    int         didInitFail() { return m_failedInit; }
-    int         didIoFail() { return m_failedIo; }
     Int16Vector getVector();
 
 protected:
     void initGyro();
-    void writeGyroRegister(char registerAddress, char value);
-    void writeRegister(int i2cAddress, char registerAddress, char value);
     void waitForPllReady();
     void waitForDataReady();
-    void readGyroRegister(char registerAddress, void* pBuffer);
-    void readRegisters(int i2cAddress, char registerAddress, void* pBuffer, size_t bufferSize);
-    void readGyroRegisters(char registerAddress, void* pBuffer, size_t bufferSize);
-
-    I2C*    m_pI2C;
-    int     m_failedInit;
-    int     m_failedIo;
-    int     m_address;
 };
 
 #endif /* ITG3200_H_ */

@@ -72,10 +72,8 @@
 #define STATUS_LOCK             (1 << 1)
 #define STATUS_RDY              (1 << 0)
 
-HMC5883L::HMC5883L(I2C* pI2C, int address /* = 0x3C */)
+HMC5883L::HMC5883L(I2C* pI2C, int address /* = 0x3C */) : SensorBase(pI2C, address)
 {
-    m_pI2C = pI2C;
-    m_address = address;
     initMagnetometer();
 }
 
@@ -83,10 +81,10 @@ void HMC5883L::initMagnetometer()
 {
     do
     {
-        writeMagnetometerRegister(CONFIG_A, SAMPLES_8 | MEASUREMENT_NORMAL);
+        writeRegister(CONFIG_A, SAMPLES_8 | MEASUREMENT_NORMAL);
         if (m_failedIo)
             break;
-        writeMagnetometerRegister(CONFIG_B, GAIN_1_3GA);
+        writeRegister(CONFIG_B, GAIN_1_3GA);
         if (m_failedIo)
             break;
     }
@@ -96,18 +94,6 @@ void HMC5883L::initMagnetometer()
         m_failedInit = 1;
 }
 
-void HMC5883L::writeMagnetometerRegister(char registerAddress, char value)
-{
-    writeRegister(m_address, registerAddress, value);
-}
-
-void HMC5883L::writeRegister(int i2cAddress, char registerAddress, char value)
-{
-    char dataToSend[2] = { registerAddress, value };
-
-    m_failedIo = m_pI2C->write(i2cAddress, dataToSend, sizeof(dataToSend), false);
-}
-
 Int16Vector HMC5883L::getVector()
 {
     uint8_t     bigEndianData[6];
@@ -115,13 +101,13 @@ Int16Vector HMC5883L::getVector()
 
     do
     {
-        writeMagnetometerRegister(MODE, MODE_SINGLE);
+        writeRegister(MODE, MODE_SINGLE);
         if (m_failedIo)
             break;
 
         wait_ms(6);
 
-        readMagnetometerRegisters(DATA_OUT_X_MSB, &bigEndianData, sizeof(bigEndianData));
+        readRegisters(DATA_OUT_X_MSB, &bigEndianData, sizeof(bigEndianData));
         if (m_failedIo)
             break;
 
@@ -132,22 +118,4 @@ Int16Vector HMC5883L::getVector()
     } while (0);
 
     return vector;
-}
-
-void HMC5883L::readMagnetometerRegister(char registerAddress, void* pBuffer)
-{
-    readRegisters(m_address, registerAddress, pBuffer, 1);
-}
-
-void HMC5883L::readRegisters(int i2cAddress, char registerAddress, void* pBuffer, size_t bufferSize)
-{
-    m_failedIo = m_pI2C->write(i2cAddress, &registerAddress, sizeof(registerAddress), true);
-    if (m_failedIo)
-        return;
-    m_failedIo = m_pI2C->read(i2cAddress, (char*)pBuffer, bufferSize, false);
-}
-
-void HMC5883L::readMagnetometerRegisters(char registerAddress, void* pBuffer, size_t bufferSize)
-{
-    readRegisters(m_address, registerAddress, pBuffer, bufferSize);
 }

@@ -10,24 +10,29 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
-#ifndef HMC5883L_H_
-#define HMC5883L_H_
+#ifndef SENSOR_BASE_H_
+#define SENSOR_BASE_H_
 
 #include <mbed.h>
-#include "Int16Vector.h"
-#include "SensorBase.h"
 
 
-class HMC5883L : public SensorBase
+class SensorBase
 {
 public:
-    HMC5883L(I2C* pI2C, int address = 0x3C);
+    SensorBase(I2C* pI2C, int address);
 
-    Int16Vector getVector();
+    int didInitFail() { return m_failedInit; }
+    int didIoFail() { return m_failedIo; }
 
 protected:
-    void initMagnetometer();
-    void waitForDataReady();
+    void writeRegister(char registerAddress, char value);
+    void readRegister(char registerAddress, char* pBuffer);
+    void readRegisters(char registerAddress, void* pBuffer, size_t bufferSize);
+
+    I2C* m_pI2C;
+    int  m_failedInit;
+    int  m_failedIo;
+    int  m_address;
 };
 
-#endif /* HMC5883L_H_ */
+#endif /* SENSOR_BASE_H_ */
