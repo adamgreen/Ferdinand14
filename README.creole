@@ -8,6 +8,28 @@ Tracking of the work I am doing for a robot to compete in the
 [[https://github.com/adamgreen/Ferdinand14/tree/master#clone-this-repo-and-its-submodules | How to Clone]]\\
 
 
+==June 13, 2014
+===Through Hole Out and SMD In
+I removed my previous through hole 10uF tantalum bypass capacitor
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140611-01.jpg}}
+
+and replaced it with the 0603 SMD 10uF tantalum capacitor that I received from Digikey today
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140613-01.jpg}}
+
+===InvenSense ITG-3200 Gyroscope
+Today I added code to my mbed firmware to support reading of the InvenSense ITG-3200 gyroscope sensor and sending the
+values read back to the PC.  The output from this sensor has a bit of zero bias but it doesn't vary by more than +/- 1
+LSB when the device is stationary.  The only modification I made to the Processing samples so far is to have them accept
+and ignore the last 3 comma separated gyro values on each line.
+
+Overall I like this sensor board from Sparkfun but I do wish that the accelerometer worked a bit better.  I ordered up a
+second 9DoF board from Sparkfun today so that Xandon and I can run experiments with the same hardware.  I now need to
+migrate the hardware from the current breadboard setup to a PCB and then I can concentrate all of my efforts on the
+filtering software.
+
+
 ==June 12, 2014
 I spent some time yesterday trying to figure out how I could fix the ADXL345 accelerometer noise.  I had originally
 thought that oversampling the accelerometer by reading 32 samples for every 1 of the magnetometer samples (accelerometer
