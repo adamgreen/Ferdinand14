@@ -15,7 +15,7 @@
 
 #include <mbed.h>
 #include "SensorBase.h"
-#include "Int16Vector.h"
+#include "IntVector.h"
 
 
 class ADXL345 : public SensorBase
@@ -23,7 +23,7 @@ class ADXL345 : public SensorBase
 public:
     ADXL345(I2C* pI2C, int address = 0xA6);
 
-    Int16Vector getVector();
+    IntVector<int16_t> getVector();
 
 protected:
     void initAccelerometer();

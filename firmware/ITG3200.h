@@ -14,7 +14,7 @@
 #define ITG3200_H_
 
 #include <mbed.h>
-#include "Int16Vector.h"
+#include "IntVector.h"
 #include "SensorBase.h"
 
 
@@ -23,7 +23,7 @@ class ITG3200 : public SensorBase
 public:
     ITG3200(I2C* pI2C, int address = 0xD0);
 
-    Int16Vector getVector();
+    IntVector<int16_t> getVector();
 
 protected:
     void initGyro();

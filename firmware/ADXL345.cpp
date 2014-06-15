@@ -118,9 +118,9 @@ void ADXL345::initAccelerometer()
         m_failedInit = 1;
 }
 
-Int16Vector ADXL345::getVector()
+IntVector<int16_t> ADXL345::getVector()
 {
-    Int16Vector vector;
+    IntVector<int16_t> vector;
 
     waitForDataReady();
     readRegisters(DATAX0, &vector, sizeof(vector));

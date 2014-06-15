@@ -39,7 +39,7 @@ SensorReadings Sparkfun9DoFSensorStick::getSensorReadings()
         // Oversample the accelerometer.
         for (int i = 0 ; i < 32 ; i++)
         {
-            Int16Vector sampleVector = m_accel.getVector();
+            IntVector<int16_t> sampleVector = m_accel.getVector();
             if (m_accel.didIoFail())
                 break;
             sensorReadings.m_accel.add(&sampleVector);

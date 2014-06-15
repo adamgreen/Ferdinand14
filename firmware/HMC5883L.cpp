@@ -94,10 +94,10 @@ void HMC5883L::initMagnetometer()
         m_failedInit = 1;
 }
 
-Int16Vector HMC5883L::getVector()
+IntVector<int16_t> HMC5883L::getVector()
 {
-    uint8_t     bigEndianData[6];
-    Int16Vector vector;
+    uint8_t            bigEndianData[6];
+    IntVector<int16_t> vector;
 
     do
     {

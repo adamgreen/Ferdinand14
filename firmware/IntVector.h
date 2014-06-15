@@ -10,42 +10,40 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
-#ifndef INT32_VECTOR_H_
-#define INT32_VECTOR_H_
+#ifndef INT_VECTOR_H_
+#define INT_VECTOR_H_
 
 #include <stdint.h>
-#include "Int16Vector.h"
 
 
-class Int32Vector
+template <class T>
+class IntVector
 {
 public:
-    Int32Vector(int32_t x, int32_t y, int32_t z)
+    IntVector(T x, T y, T z)
     {
         m_x = x;
         m_y = y;
         m_z = z;
     }
-    Int32Vector()
+    IntVector()
     {
         m_x = 0;
         m_y = 0;
         m_z = 0;
     }
 
-    template <class T>
-    void add(T* p)
+    template <class S>
+    void add(IntVector<S>* p)
     {
         m_x += p->m_x;
         m_y += p->m_y;
         m_z += p->m_z;
     }
 
-    int32_t m_x;
-    int32_t m_y;
-    int32_t m_z;
-
-protected:
+    T m_x;
+    T m_y;
+    T m_z;
 };
 
-#endif /* INT32_VECTOR_H_ */
+#endif /* INT_VECTOR_H_ */

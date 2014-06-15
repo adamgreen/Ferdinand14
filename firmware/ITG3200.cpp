@@ -111,10 +111,10 @@ void ITG3200::waitForPllReady()
     } while ((intStatus & ITG_RDY) == 0);
 }
 
-Int16Vector ITG3200::getVector()
+IntVector<int16_t> ITG3200::getVector()
 {
-    char        bigEndianDataWithTemp[8];
-    Int16Vector vector;
+    char                bigEndianDataWithTemp[8];
+    IntVector<int16_t>  vector;
 
     waitForDataReady();
     readRegisters(TEMP_OUT_H, bigEndianDataWithTemp, sizeof(bigEndianDataWithTemp));

@@ -17,15 +17,14 @@
 #include "ADXL345.h"
 #include "HMC5883L.h"
 #include "ITG3200.h"
-#include "Int16Vector.h"
-#include "Int32Vector.h"
+#include "IntVector.h"
 
 typedef class SensorReadings
 {
 public:
-    Int32Vector m_accel;
-    Int16Vector m_mag;
-    Int16Vector m_gyro;
+    IntVector<int32_t> m_accel;
+    IntVector<int16_t> m_mag;
+    IntVector<int16_t> m_gyro;
 } SensorReadings;
 
 

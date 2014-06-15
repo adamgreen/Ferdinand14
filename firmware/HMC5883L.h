@@ -14,7 +14,7 @@
 #define HMC5883L_H_
 
 #include <mbed.h>
-#include "Int16Vector.h"
+#include "IntVector.h"
 #include "SensorBase.h"
 
 
@@ -23,7 +23,7 @@ class HMC5883L : public SensorBase
 public:
     HMC5883L(I2C* pI2C, int address = 0x3C);
 
-    Int16Vector getVector();
+    IntVector<int16_t> getVector();
 
 protected:
     void initMagnetometer();
