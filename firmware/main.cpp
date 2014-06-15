@@ -12,10 +12,7 @@
 */
 /* Test harness for my heading class. */
 #include <mbed.h>
-#include "ADXL345.h"
-#include "HMC5883L.h"
-#include "ITG3200.h"
-#include "Int32Vector.h"
+#include "Sparkfun9DoFSensorStick.h"
 
 template<class T>
 void printVector(T* pVector)
@@ -26,45 +23,21 @@ void printVector(T* pVector)
 
 int main()
 {
-    static I2C     i2c(p9, p10);
-    i2c.frequency(400000);
-
-    static ADXL345  accelerometer(&i2c);
-    if (accelerometer.didInitFail())
-        error("Encountered I2C I/O error during accelerometer init.\n");
-
-    static HMC5883L magnetometer(&i2c);
-    if (magnetometer.didInitFail())
-        error("Encountered I2C I/O error during magnetometer init.\n");
-
-    static ITG3200 gyro(&i2c);
-    if (gyro.didInitFail())
-        error("Encountered I2C I/O error during gyro init.\n");
+    static Sparkfun9DoFSensorStick sensorStick(p9, p10);
+    if (sensorStick.didInitFail())
+        error("Encountered I2C I/O error during Sparkfun 9DoF Sensor Stick init.\n");
 
     for (;;)
     {
-        Int32Vector accelerometerVector;
+        SensorReadings sensorReadings = sensorStick.getSensorReadings();
+        if (sensorStick.didIoFail())
+            error("Encountered I2C I/O error during fetch of Sparkfun 9DoF Sensor Stick readings.\n");
 
-        for (int i = 0 ; i < 32 ; i++)
-        {
-            Int16Vector sampleVector = accelerometer.getVector();
-            if (accelerometer.didIoFail())
-                error("Encountered I2C I/O error during accelerometer vector fetch.\n");
-            accelerometerVector.add(&sampleVector);
-        }
-        printVector(&accelerometerVector);
+        printVector(&sensorReadings.m_accel);
         printf(",");
-
-        Int16Vector magnetometerVector = magnetometer.getVector();
-        if (magnetometer.didIoFail())
-            error("Encountered I2C I/O error during magnetometer vector fetch.\n");
-        printVector(&magnetometerVector);
+        printVector(&sensorReadings.m_mag);
         printf(",");
-
-        Int16Vector gyroVector = gyro.getVector();
-        if (gyro.didIoFail())
-            error("Encountered I2C I/O error during gyro vector fetch.\n");
-        printVector(&gyroVector);
+        printVector(&sensorReadings.m_gyro);
         printf("\n");
     }
 
