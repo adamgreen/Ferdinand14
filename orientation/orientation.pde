@@ -13,7 +13,6 @@
 import processing.serial.*;
 
 HeadingSensor g_headingSensor;
-PMatrix3D     g_baseRotation;
 PMatrix3D     g_rotationMatrix;
 boolean       g_zeroRotation = false;
 
@@ -48,6 +47,15 @@ void draw()
   north.sub(PVector.mult(down, north.dot(down)));
   north.normalize();
 
+  // If the user has pressed the space key, then move the camera to face the device front.
+  if (g_zeroRotation)
+  {
+    PVector cam = new PVector(0, (height / 2.0) / tan(radians(30.0)));
+    cam.rotate(atan2(-north.z, north.x));
+    camera(cam.x + width/2.0, height/2.0, cam.y, width/2.0, height/2.0, 0, 0, 1, 0);
+    g_zeroRotation = false;
+  }
+
   // Setup 3d transformations other than rotation which will come next.
   translate(width / 2, height / 2, 0);
   scale(5.0f, 5.0f, 5.0f);
@@ -60,14 +68,6 @@ void draw()
                                    down.x, down.y, down.z, 0.0,
                                    west.x, west.y, west.z, 0.0,
                                    0.0, 0.0, 0.0, 1.0);
-
-  // If the user has pressed the space key, then zero the rotation matrix at this orientation.
-  if (g_zeroRotation)
-  {
-    g_baseRotation = new PMatrix3D(g_rotationMatrix);
-    g_baseRotation.invert();
-    g_zeroRotation = false;
-  }
 
   // Make the current rotation relative to base orientation.
   // UNDONE: g_rotationMatrix.preApply(g_baseRotation);
