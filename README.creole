@@ -8,6 +8,40 @@ Tracking of the work I am doing for a robot to compete in the
 [[https://github.com/adamgreen/Ferdinand14/tree/master#clone-this-repo-and-its-submodules | How to Clone]]\\
 
 
+==June 17, 2014
+It has been a few days since I updated these notes but I have been making progress on the orientation sensor since the
+last update.
+
+===Soldered Prototype
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140615-01.jpg}}
+
+I have moved the Sparkfun 9DoF Sensor Stick and mbed-LPC1768 from the solder-less breadboard and moved it to a more
+[[https://www.sparkfun.com/products/8619 | permanent soldered prototyping board]] to be mounted in a
+[[https://www.sparkfun.com/products/8601 | Sparkfun Project Case]].  The 2.2k ohm resistors in the above image were
+temporarily soldered on to decrease I2C signal rise times.  I have SMD resistors arriving this week that I will just
+solder onto the 9 DoF board and then remove these temporaries.
+
+===Code Updates
+I have also made several updates to the code over the last couple of days:
+* I refactored the firmware on the mbed:
+** Removed redundant code that was copy/pasted into the ADXL345 accelerometer, HMC5883L magnetometer, and ITG3200 gyro
+   classes.  The shared code is now found in the SensorBase class from which the other sensor classes derive.
+** I also added a Sparkfun9DoFSensorStick class.  This class encapsulates the three sensor classes (ADXL345, HMC5883L,
+   and ITG3200) and the main code now just instantiates and queries it for all of the sensor readings.
+** Created a template based version of IntVector<> to replace Int16Vector and Int32Vector.
+* Now that I have the electronics in a more permanent enclosure, I updated the samples accordingly:
+** I updated the magnetometer calibration settings since the hard-iron distortions changed during the move from the
+   solder-less breadboard.
+** I added the ability in the Orientation sample to press the <space> bar to have the camera rotated around to face the
+   current location of the front of the device.  By default it starts up facing towards the east.  Now it can be moved
+   to match the direction the audience is facing.
+** I also added coloured paper to the actual prototype enclosure and matched the colours in the virtual device rendered
+   in the Orientation sample.  This makes it easier for people viewing the demo to see how what is on the screen matches
+   the orientation of the physical device.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140617-01.jpg}}
+
+
 ==June 13, 2014
 ===Through Hole Out and SMD In
 I removed my previous through hole 10uF tantalum bypass capacitor
