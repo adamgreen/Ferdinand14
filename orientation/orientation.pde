@@ -75,7 +75,7 @@ void draw()
 
   // Draw four sides of box with different colours on each.
   stroke(160);
-  fill(0, 0, 255);
+  fill(82, 10, 242);
   beginShape(QUADS);
     vertex(-25, -10, 50);
     vertex(-25, 10, 50);
@@ -99,11 +99,28 @@ void draw()
     vertex(25, 10, -50);
   endShape();
 
-  fill(0, 255, 0);
+  fill(126, 209, 13);
   beginShape(QUADS);
     vertex(-25, -10, -50);
     vertex(-25, 10, -50);
     vertex(25, 10, -50);
+    vertex(25, -10, -50);
+  endShape();
+  
+  fill(209, 6, 10);
+  beginShape(QUADS);
+    vertex(-25, 10, -50);
+    vertex(-25, 10, 50);
+    vertex(-25, -10, 50);
+    vertex(-25, -10, -50);
+  endShape();
+  
+  
+  fill(237, 255, 0);
+  beginShape(QUADS);
+    vertex(25, 10, -50);
+    vertex(25, 10, 50);
+    vertex(25, -10, 50);
     vertex(25, -10, -50);
   endShape();
 }
