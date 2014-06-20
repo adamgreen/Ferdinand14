@@ -8,6 +8,23 @@ Tracking of the work I am doing for a robot to compete in the
 [[https://github.com/adamgreen/Ferdinand14/tree/master#clone-this-repo-and-its-submodules | How to Clone]]\\
 
 
+==June 19, 2014
+Tonight, I removed the two ugly 2.2k ohm through-hole resistors that can be seen in the June 17th notes.  Instead of
+using these external resistors, I removed the 4.7k ohm SMD resistors from the 9DoF sensor board and replaced them with
+0603 2k ohm SMD resistors.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140619-01.jpg}}
+
+Yesterday, my copy of
+[[http://www.amazon.com/Kalman-Filter-Beginners-MATLAB-Examples/dp/1463648359 | Kalman Filter for Beginners by Phil Kim]]
+arrived from Amazon.  I read the whole book last night.  It provides a great introduction to Kalman filtering without
+excessive math.  There are even attitude reference examples that are very relevant to the orientation sensor that I am
+currently working on.  I only have two minor complaints about the book: it was translated from Korean to English by a
+non-native English speaker; and I would have liked to see more discussion on how to troubleshoot the filter when it
+doesn't work as expected.   I plan to adapt the example from Chapter 13, "Attitude reference system" to my orientation
+sensor project over the next couple of days.  I might even have it ready for demoing at the SRS meeting on June 21st.
+
+
 ==June 17, 2014
 It has been a few days since I updated these notes but I have been making progress on the orientation sensor since the
 last update.
