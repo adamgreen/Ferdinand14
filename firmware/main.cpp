@@ -23,6 +23,12 @@ void printVector(T* pVector)
 
 int main()
 {
+    if (!MRI_ENABLE)
+    {
+        static Serial pc(USBTX, USBRX);
+        pc.baud(230400);
+    }
+
     static Sparkfun9DoFSensorStick sensorStick(p9, p10);
     if (sensorStick.didInitFail())
         error("Encountered I2C I/O error during Sparkfun 9DoF Sensor Stick init.\n");

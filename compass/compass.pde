@@ -22,7 +22,7 @@ void setup()
   size(400, 225, OPENGL);
   fill(255, 0, 0);
 
-  Serial port = new Serial(this, "/dev/tty.usbmodem1412", 9600);
+  Serial port = new Serial(this, "/dev/tty.usbmodem1412", 230400);
 
   // These min/max configuration values were found by rotating my sensor setup
   // and dumping min/max values with the d key in magView.
