@@ -14,7 +14,10 @@ import processing.serial.*;
 
 HeadingSensor g_headingSensor;
 PMatrix3D     g_rotationMatrix;
+boolean       g_filtered = false;
 boolean       g_zeroRotation = false;
+int           g_samples = 0;
+int           g_lastSampleCount;
 
 void setup() 
 {
@@ -29,13 +32,26 @@ void setup()
   Heading max = new Heading(8736, 8320, 7456, 644, 551, 604);
   Heading filterWidths = new Heading(16, 16, 16, 16, 16, 16);
   g_headingSensor = new HeadingSensor(port, min, max, filterWidths);
+  g_lastSampleCount = millis();
 }
 
 void draw()
 {
+  int elapsedTime = millis() - g_lastSampleCount;
+  if (elapsedTime > 10000)
+  {
+    println(g_samples / (elapsedTime / 1000));
+    g_lastSampleCount = millis();
+    g_samples = 0;
+  }
+  
   background(100);
 
-  FloatHeading heading = g_headingSensor.getCurrentFiltered();
+  FloatHeading heading;
+  if (g_filtered)
+    heading = g_headingSensor.getCurrentFiltered();
+  else
+    heading = g_headingSensor.getCurrent();   
   
   // Setup gravity (down) and north vectors.
   // NOTE: The fields are swizzled to make the axis on the device match the axis on the screen.
@@ -129,6 +145,7 @@ void serialEvent(Serial port)
 {
   if (g_headingSensor != null)
     g_headingSensor.update();
+  g_samples++;
 }
 
 void keyPressed()
@@ -139,6 +156,9 @@ void keyPressed()
   {
   case ' ':
     g_zeroRotation = true;
+    break;
+  case 'f':
+    g_filtered = !g_filtered;
     break;
   }
 }
