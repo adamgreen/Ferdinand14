@@ -12,18 +12,21 @@
 */
 class FloatHeading
 {
-  float m_accelX;
-  float m_accelY;
-  float m_accelZ;
-  float m_magX;
-  float m_magY;
-  float m_magZ;
+  double m_accelX;
+  double m_accelY;
+  double m_accelZ;
+  double m_magX;
+  double m_magY;
+  double m_magZ;
+  double m_gyroX;
+  double m_gyroY;
+  double m_gyroZ;
   
   FloatHeading()
   {
   }
   
-  FloatHeading(float accelX, float accelY, float accelZ, float magX, float magY, float magZ)
+  FloatHeading(double accelX, double accelY, double accelZ, double magX, double magY, double magZ, double gyroX, double gyroY, double gyroZ)
   {
     m_accelX = accelX;
     m_accelY = accelY;
@@ -31,8 +34,37 @@ class FloatHeading
     m_magX = magX;
     m_magY = magY;
     m_magZ = magZ;
+    m_gyroX = gyroX;
+    m_gyroY = gyroY;
+    m_gyroZ = gyroZ;
   }
 
+  void add(Heading other)
+  {
+    m_accelX += other.m_accelX;
+    m_accelY += other.m_accelY;
+    m_accelZ += other.m_accelZ;
+    m_magX += other.m_magX;
+    m_magY += other.m_magY;
+    m_magZ += other.m_magZ;
+    m_gyroX += other.m_gyroX;
+    m_gyroY += other.m_gyroY;
+    m_gyroZ += other.m_gyroZ;
+  }
+
+  void addSquared(Heading other)
+  {
+    m_accelX += other.m_accelX * other.m_accelX;
+    m_accelY += other.m_accelY * other.m_accelY;
+    m_accelZ += other.m_accelZ * other.m_accelZ;
+    m_magX += other.m_magX * other.m_magX;
+    m_magY += other.m_magY * other.m_magY;
+    m_magZ += other.m_magZ * other.m_magZ;
+    m_gyroX += other.m_gyroX * other.m_gyroX;
+    m_gyroY += other.m_gyroY * other.m_gyroY;
+    m_gyroZ += other.m_gyroZ * other.m_gyroZ;
+  }
+  
   void print()
   {
     System.out.print(m_accelX + "," +
@@ -40,7 +72,10 @@ class FloatHeading
               m_accelZ + "," +
               m_magX + "," +
               m_magY + "," +
-              m_magZ);
+              m_magZ + "," +
+              m_gyroX + "," +
+              m_gyroY + "," +
+              m_gyroZ);
   }
 };
 

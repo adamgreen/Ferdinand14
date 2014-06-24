@@ -38,13 +38,19 @@ class HeadingSensor
                                   (min.m_accelZ + max.m_accelZ) / 2.0f,
                                   (min.m_magX + max.m_magX) / 2.0f,
                                   (min.m_magY + max.m_magY) / 2.0f,
-                                  (min.m_magZ + max.m_magZ) / 2.0f);
+                                  (min.m_magZ + max.m_magZ) / 2.0f,
+                                  min.m_gyroX,
+                                  min.m_gyroY,
+                                  min.m_gyroZ);
     m_scale = new FloatHeading((max.m_accelX - min.m_accelX) / 2.0f,
                                (max.m_accelY - min.m_accelY) / 2.0f,
                                (max.m_accelZ - min.m_accelZ) / 2.0f,
                                (max.m_magX - min.m_magX) / 2.0f,
                                (max.m_magY - min.m_magY) / 2.0f,
-                               (max.m_magZ - min.m_magZ) / 2.0f);
+                               (max.m_magZ - min.m_magZ) / 2.0f,
+                               1.0f,
+                               1.0f,
+                               1.0f);
   }
 
   void update()
@@ -62,6 +68,9 @@ class HeadingSensor
       m_currentRaw.m_magX = int(tokens[3]);
       m_currentRaw.m_magY = int(tokens[4]);
       m_currentRaw.m_magZ = int(tokens[5]);
+      m_currentRaw.m_gyroX = int(tokens[6]);
+      m_currentRaw.m_gyroY = int(tokens[7]);
+      m_currentRaw.m_gyroZ = int(tokens[8]);
       
       for (int i = 0 ; i < m_averages.length ; i++)
         m_averages[i].update(int(tokens[i]));
@@ -83,7 +92,10 @@ class HeadingSensor
                        m_averages[2].getAverage(),
                        m_averages[3].getAverage(),
                        m_averages[4].getAverage(),
-                       m_averages[5].getAverage());
+                       m_averages[5].getAverage(),
+                       m_currentRaw.m_gyroX,
+                       m_currentRaw.m_gyroY,
+                       m_currentRaw.m_gyroZ);
   }
   
   FloatHeading getCurrentFiltered()
@@ -93,7 +105,10 @@ class HeadingSensor
                             (m_averages[2].getAverage() - m_midpoint.m_accelZ) / m_scale.m_accelZ,
                             (m_averages[3].getAverage() - m_midpoint.m_magX) / m_scale.m_magX,
                             (m_averages[4].getAverage() - m_midpoint.m_magY) / m_scale.m_magY,
-                            (m_averages[5].getAverage() - m_midpoint.m_magZ) / m_scale.m_magZ);
+                            (m_averages[5].getAverage() - m_midpoint.m_magZ) / m_scale.m_magZ,
+                            m_currentRaw.m_gyroX - m_midpoint.m_gyroX,
+                            m_currentRaw.m_gyroY - m_midpoint.m_gyroY,
+                            m_currentRaw.m_gyroZ - m_midpoint.m_gyroZ);
   }
   
   FloatHeading getCurrent()
@@ -103,7 +118,10 @@ class HeadingSensor
                             (m_currentRaw.m_accelZ - m_midpoint.m_accelZ) / m_scale.m_accelZ,
                             (m_currentRaw.m_magX - m_midpoint.m_magX) / m_scale.m_magX,
                             (m_currentRaw.m_magY - m_midpoint.m_magY) / m_scale.m_magY,
-                            (m_currentRaw.m_magZ - m_midpoint.m_magZ) / m_scale.m_magZ);
+                            (m_currentRaw.m_magZ - m_midpoint.m_magZ) / m_scale.m_magZ,
+                            m_currentRaw.m_gyroX - m_midpoint.m_gyroX,
+                            m_currentRaw.m_gyroY - m_midpoint.m_gyroY,
+                            m_currentRaw.m_gyroZ - m_midpoint.m_gyroZ);                           
   }
   
   Heading getMin()
@@ -119,8 +137,10 @@ class HeadingSensor
   Serial  m_port;
   Heading m_currentRaw = new Heading();
   Heading m_min = new Heading(0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF,
+                              0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF,
                               0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF);
   Heading m_max = new Heading(0x80000000, 0x80000000, 0x80000000,
+                              0x80000000, 0x80000000, 0x80000000,
                               0x80000000, 0x80000000, 0x80000000);
   FloatHeading    m_midpoint;
   FloatHeading    m_scale;

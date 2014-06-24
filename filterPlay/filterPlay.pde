@@ -17,6 +17,9 @@ int           g_axis = 0;
 boolean       g_filtered = false;
 float[]       g_samples;
 int           g_sampleIndex;
+FloatHeading  g_samplesSum;
+FloatHeading  g_samplesSquaredSum;
+int           g_statSamples;
 
 void setup() 
 {
@@ -24,14 +27,17 @@ void setup()
 
   g_samples = new float[width];
   g_sampleIndex = 0;
+  g_samplesSum = new FloatHeading(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+  g_samplesSquaredSum = new FloatHeading(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+  g_statSamples = 0;
 
   Serial port = new Serial(this, "/dev/tty.usbmodem1412", 230400);
 
   // These min/max configuration values were found by rotating my sensor setup
   // and dumping min/max values with the d key in magView.
-  Heading min = new Heading(-7744, -8256, -8960, -666, -755, -598);
-  Heading max = new Heading(8736, 8320, 7456, 644, 551, 604);
-  Heading filterWidths = new Heading(16, 16, 16, 16, 16, 16);
+  Heading min = new Heading(-7744, -8256, -8960, -666, -755, -598, 0, 0, 0);
+  Heading max = new Heading(8736, 8320, 7456, 644, 551, 604, 0, 0, 0);
+  Heading filterWidths = new Heading(16, 16, 16, 16, 16, 16, 0 , 0, 0);
   g_headingSensor = new HeadingSensor(port, min, max, filterWidths);
 }
 
@@ -75,26 +81,63 @@ void serialEvent(Serial port)
   switch (g_axis)
   {
   case 0:
-    sample = heading.m_accelX;
+    sample = (float)heading.m_accelX;
     break;
   case 1:
-    sample = heading.m_accelY;
+    sample = (float)heading.m_accelY;
     break;
   case 2:
-    sample = heading.m_accelZ;
+    sample = (float)heading.m_accelZ;
     break;
   case 3:
-    sample = heading.m_magX;
+    sample = (float)heading.m_magX;
     break;
   case 4:
-    sample = heading.m_magY;
+    sample = (float)heading.m_magY;
     break;
   case 5:
-    sample = heading.m_magZ;
+    sample = (float)heading.m_magZ;
     break;
   }
   g_samples[g_sampleIndex] = sample;
   g_sampleIndex = (g_sampleIndex + 1) % g_samples.length;
+  
+  Heading currentRaw = g_headingSensor.getCurrentRaw();
+  g_samplesSum.add(currentRaw);
+  g_samplesSquaredSum.addSquared(currentRaw);
+  g_statSamples++;
+  if (g_statSamples == 32768)
+  {
+    FloatHeading mean = new FloatHeading(g_samplesSum.m_accelX / g_statSamples,
+                                         g_samplesSum.m_accelY / g_statSamples,
+                                         g_samplesSum.m_accelZ / g_statSamples,
+                                         g_samplesSum.m_magX / g_statSamples,
+                                         g_samplesSum.m_magY / g_statSamples,
+                                         g_samplesSum.m_magZ / g_statSamples,
+                                         g_samplesSum.m_gyroX / g_statSamples,
+                                         g_samplesSum.m_gyroY / g_statSamples,
+                                         g_samplesSum.m_gyroZ / g_statSamples);
+    FloatHeading variance = new FloatHeading((g_samplesSquaredSum.m_accelX - ((g_samplesSum.m_accelX * g_samplesSum.m_accelX) / g_statSamples)) / (g_statSamples - 1),
+                                             (g_samplesSquaredSum.m_accelY - ((g_samplesSum.m_accelY * g_samplesSum.m_accelY) / g_statSamples)) / (g_statSamples - 1),
+                                             (g_samplesSquaredSum.m_accelZ - ((g_samplesSum.m_accelZ * g_samplesSum.m_accelZ) / g_statSamples)) / (g_statSamples - 1),
+                                             (g_samplesSquaredSum.m_magX - ((g_samplesSum.m_magX * g_samplesSum.m_magX) / g_statSamples)) / (g_statSamples - 1),
+                                             (g_samplesSquaredSum.m_magY - ((g_samplesSum.m_magY * g_samplesSum.m_magY) / g_statSamples)) / (g_statSamples - 1),
+                                             (g_samplesSquaredSum.m_magZ - ((g_samplesSum.m_magZ * g_samplesSum.m_magZ) / g_statSamples)) / (g_statSamples - 1),                                         
+                                             (g_samplesSquaredSum.m_gyroX - ((g_samplesSum.m_gyroX * g_samplesSum.m_gyroX) / g_statSamples)) / (g_statSamples - 1),
+                                             (g_samplesSquaredSum.m_gyroY - ((g_samplesSum.m_gyroY * g_samplesSum.m_gyroY) / g_statSamples)) / (g_statSamples - 1),
+                                             (g_samplesSquaredSum.m_gyroZ - ((g_samplesSum.m_gyroZ * g_samplesSum.m_gyroZ) / g_statSamples)) / (g_statSamples - 1));
+    print("Mean: ");
+    mean.print();
+    println();
+    print("Variance: ");
+    variance.print();
+    println();
+    
+    g_samplesSum = new FloatHeading(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    g_samplesSquaredSum = new FloatHeading(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    g_statSamples = 0;
+  }
+  
 }
 
 void keyPressed()

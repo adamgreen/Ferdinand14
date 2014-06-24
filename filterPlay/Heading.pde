@@ -18,12 +18,15 @@ class Heading
   int m_magX;
   int m_magY;
   int m_magZ;
+  int m_gyroX;
+  int m_gyroY;
+  int m_gyroZ;
   
   Heading()
   {
   }
   
-  Heading(int accelX, int accelY, int accelZ, int magX, int magY, int magZ)
+  Heading(int accelX, int accelY, int accelZ, int magX, int magY, int magZ, int gyroX, int gyroY, int gyroZ)
   {
     m_accelX = accelX;
     m_accelY = accelY;
@@ -31,6 +34,9 @@ class Heading
     m_magX = magX;
     m_magY = magY;
     m_magZ = magZ;
+    m_gyroX = gyroX;
+    m_gyroY = gyroY;
+    m_gyroZ = gyroZ;
   }
   
   Heading max(Heading other)
@@ -61,6 +67,19 @@ class Heading
       max.m_magZ = m_magZ;
     else
       max.m_magZ = other.m_magZ;
+
+    if (m_gyroX > other.m_gyroX)
+      max.m_gyroX = m_gyroX;
+    else
+      max.m_gyroX = other.m_gyroX;
+    if (m_gyroY > other.m_gyroY)
+      max.m_gyroY = m_gyroY;
+    else
+      max.m_gyroY = other.m_gyroY;
+    if (m_gyroZ > other.m_gyroZ)
+      max.m_gyroZ = m_gyroZ;
+    else
+      max.m_gyroZ = other.m_gyroZ;
       
     return max;
   }
@@ -93,6 +112,19 @@ class Heading
       min.m_magZ = m_magZ;
     else
       min.m_magZ = other.m_magZ;
+
+    if (m_gyroX < other.m_gyroX)
+      min.m_gyroX = m_gyroX;
+    else
+      min.m_gyroX = other.m_gyroX;
+    if (m_gyroY < other.m_gyroY)
+      min.m_gyroY = m_gyroY;
+    else
+      min.m_gyroY = other.m_gyroY;
+    if (m_gyroZ < other.m_gyroZ)
+      min.m_gyroZ = m_gyroZ;
+    else
+      min.m_gyroZ = other.m_gyroZ;
       
     return min;
   }
@@ -104,7 +136,10 @@ class Heading
               m_accelZ + "," +
               m_magX + "," +
               m_magY + "," +
-              m_magZ);
+              m_magZ + "," +
+              m_gyroX + "," +
+              m_gyroY + "," +
+              m_gyroZ);
   }
 };
 
