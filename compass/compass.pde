@@ -10,61 +10,23 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
-import processing.serial.*;
-
-HeadingSensor g_headingSensor;
-boolean       g_tiltCompensated = true;
-boolean       g_smoothed = true;
+FilteredCompass g_compass;
 
 
 void setup() 
 {
   size(400, 225, OPENGL);
   fill(255, 0, 0);
-
-  ConfigFile configFile = new ConfigFile(System.getenv("USER") + ".config");
-
-  IntVector minAccel = configFile.vectorParam("compass.accelerometer.min");
-  IntVector minMag = configFile.vectorParam("compass.magnetometer.min");
-  IntVector maxAccel = configFile.vectorParam("compass.accelerometer.max");
-  IntVector maxMag = configFile.vectorParam("compass.magnetometer.max");
-  Heading min = new Heading(minAccel.x, minAccel.y, minAccel.z, minMag.x, minMag.y, minMag.z);
-  Heading max = new Heading(maxAccel.x, maxAccel.y, maxAccel.z, maxMag.x, maxMag.y, maxMag.z);
-  Heading filterWidths = new Heading(16, 16, 16, 16, 16, 16);
-  g_headingSensor = new HeadingSensor(configFile.param("compass.port"), min, max, filterWidths);
+  
+  g_compass = new FilteredCompass();
 }
 
 void draw()
 {
   background(0);
-
-  FloatHeading heading;
-  if (g_smoothed)
-    heading = g_headingSensor.getCurrentFiltered();
-  else
-    heading = g_headingSensor.getCurrent();
-  
-  // The magnetometer output represents the north vector.
-  // Swizzling magnetometer axis to match the accelerometer.
-  PVector north = new PVector(heading.m_magY, -heading.m_magX, heading.m_magZ);
-  
-  if (g_tiltCompensated)
-  {
-    // The accelerometer represents the gravity vector.
-    // The gravity vector is the normal of the plane representing the surface of the earth.
-    PVector gravity = new PVector(heading.m_accelX, heading.m_accelY, heading.m_accelZ);
-    gravity.normalize();
-
-    // Project the north vector onto the earth surface plane.
-    north.sub(PVector.mult(gravity, north.dot(gravity)));
-  }
-
-  float headingAngle = 0;
-  headingAngle = atan2(-north.y, north.x);
-
   lights();
   translate(width/2, height/2, 0);
-  drawCompass(headingAngle);
+  drawCompass(g_compass.getHeading());
 }
 
 void drawCompass(float angle)
@@ -127,23 +89,9 @@ void keyPressed()
   
   switch(lowerKey)
   {
-  case 'd':
-    print("min: ");
-    g_headingSensor.getMin().print();
-    println();
-
-    print("max: ");
-    g_headingSensor.getMax().print();
-    println();
-    break;
-  case 'c':
-    g_tiltCompensated = true;
-    break;
-  case 'n':
-    g_tiltCompensated = false;
-    break;
   case 's':
-    g_smoothed = !g_smoothed; 
+    g_compass.setSmoothed(!g_compass.isSmoothed()); 
+    break;
   }
 }
 

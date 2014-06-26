@@ -10,6 +10,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
+import processing.serial.*;
+
 public class HeadingSensor extends PApplet
 {
   HeadingSensor(String portName, Heading min, Heading max, Heading sampleCounts)
