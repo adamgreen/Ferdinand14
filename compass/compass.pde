@@ -23,7 +23,6 @@ void setup()
   fill(255, 0, 0);
 
   ConfigFile configFile = new ConfigFile(System.getenv("USER") + ".config");
-  Serial port = new Serial(this, configFile.param("compass.port"), 230400);
 
   IntVector minAccel = configFile.vectorParam("compass.accelerometer.min");
   IntVector minMag = configFile.vectorParam("compass.magnetometer.min");
@@ -32,7 +31,7 @@ void setup()
   Heading min = new Heading(minAccel.x, minAccel.y, minAccel.z, minMag.x, minMag.y, minMag.z);
   Heading max = new Heading(maxAccel.x, maxAccel.y, maxAccel.z, maxMag.x, maxMag.y, maxMag.z);
   Heading filterWidths = new Heading(16, 16, 16, 16, 16, 16);
-  g_headingSensor = new HeadingSensor(port, min, max, filterWidths);
+  g_headingSensor = new HeadingSensor(configFile.param("compass.port"), min, max, filterWidths);
 }
 
 void draw()
@@ -120,12 +119,6 @@ void drawCylinder(float topRadius, float bottomRadius, float tall, int sides) {
     }
     endShape();
   }
-}
-
-void serialEvent(Serial port)
-{
-  if (g_headingSensor != null)
-    g_headingSensor.update();
 }
 
 void keyPressed()

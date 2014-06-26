@@ -10,9 +10,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
-class HeadingSensor
+public class HeadingSensor extends PApplet
 {
-  HeadingSensor(Serial port, Heading min, Heading max, Heading sampleCounts)
+  HeadingSensor(String portName, Heading min, Heading max, Heading sampleCounts)
   {
     calibrate(min, max);
     
@@ -25,7 +25,7 @@ class HeadingSensor
     m_averages[5] = new MovingAverage(sampleCounts.m_magZ);
     
     // Clear out any data that we might be in the middle of.
-    m_port = port;
+    m_port = new Serial(this, portName, 230400);
     m_port.clear();
     String dummy = m_port.readStringUntil('\n');
     m_port.bufferUntil('\n');
@@ -47,6 +47,11 @@ class HeadingSensor
                                (max.m_magZ - min.m_magZ) / 2.0f);
   }
 
+  void serialEvent(Serial port)
+  {
+    update();
+  }
+  
   void update()
   {
     String line = m_port.readString();
