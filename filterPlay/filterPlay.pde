@@ -31,13 +31,16 @@ void setup()
   g_samplesSquaredSum = new FloatHeading(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
   g_statSamples = 0;
 
-  Serial port = new Serial(this, "/dev/tty.usbmodem1412", 230400);
+  ConfigFile configFile = new ConfigFile(System.getenv("USER") + ".config");
+  Serial port = new Serial(this, configFile.param("compass.port"), 230400);
 
-  // These min/max configuration values were found by rotating my sensor setup
-  // and dumping min/max values with the d key in magView.
-  Heading min = new Heading(-7744, -8256, -8960, -666, -755, -598, 0, 0, 0);
-  Heading max = new Heading(8736, 8320, 7456, 644, 551, 604, 0, 0, 0);
-  Heading filterWidths = new Heading(16, 16, 16, 16, 16, 16, 0 , 0, 0);
+  IntVector minAccel = configFile.vectorParam("compass.accelerometer.min");
+  IntVector minMag = configFile.vectorParam("compass.magnetometer.min");
+  IntVector maxAccel = configFile.vectorParam("compass.accelerometer.max");
+  IntVector maxMag = configFile.vectorParam("compass.magnetometer.max");
+  Heading min = new Heading(minAccel.x, minAccel.y, minAccel.z, minMag.x, minMag.y, minMag.z, 0, 0, 0);
+  Heading max = new Heading(maxAccel.x, maxAccel.y, maxAccel.z, maxMag.x, maxMag.y, maxMag.z, 0, 0, 0);
+  Heading filterWidths = new Heading(16, 16, 16, 16, 16, 16, 0, 0, 0);
   g_headingSensor = new HeadingSensor(port, min, max, filterWidths);
 }
 
