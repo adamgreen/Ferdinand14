@@ -8,6 +8,29 @@ Tracking of the work I am doing for a robot to compete in the
 [[https://github.com/adamgreen/Ferdinand14/tree/master#clone-this-repo-and-its-submodules | How to Clone]]\\
 
 
+==June 30, 2014
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140630-01.jpg}}
+
+While I haven't written anything here for over a week, I have been continuing to make progress on this project:
+* I demoed the orientation sensor at the June 21st Seattle Robotics Society, SRS, meeting.
+* At the same SRS meeting I handed the first orientation sensor prototype off to Xandon.  We also took it outside with
+  his Felix robot to make sure that there was no major interference that would make it completely useless.
+* I constructed a second orientation sensor prototype for my own use.
+* Met with Xandon again on June 25th to come up with a plan for future testing and feature implementation.
+* I updated the compass sample:
+** It now reads options like serial port name and calibration settings from a text based configuration file.  This
+   allows Xandon and me to both use the same code on our machines even though our hardware configuration is a bit
+   different.  An example can be seen
+  [[https://github.com/adamgreen/Ferdinand14/blob/5457064317acb5c943e4d3cd82ba59ea0fc498d6/compass/adamgreen.config | here]].
+** The math for calculating heading and configuring the orientation sensor has been moved into a
+   [[https://github.com/adamgreen/Ferdinand14/blob/c0d378190d03f3f7b54830822890923e2679077e/compass/FilteredCompass.pde | FilteredCompass]]
+   class.
+* I continue to make progress reading
+  [[http://www.amazon.com/Fundamentals-Kalman-Filtering-Astronautics-Aeronautics/dp/1563476940 | Fundamentals of Kalman Filtering: A Practical Approach by Paul Zarchan and Howard Musoff]]
+* I updated the firmware to increase the sample rate from ~55 to ~88 Hz.  I plan to make more updates in the future in
+an attempt to get the sample rate up to 100 Hz.
+
+
 ==June 19, 2014
 Tonight, I removed the two ugly 2.2k ohm through-hole resistors that can be seen in the June 17th notes.  Instead of
 using these external resistors, I removed the 4.7k ohm SMD resistors from the 9DoF sensor board and replaced them with
