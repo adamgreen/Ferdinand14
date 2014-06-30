@@ -11,23 +11,20 @@
     GNU General Public License for more details.
 */
 /* Test harness for my heading class. */
+#include <assert.h>
 #include <mbed.h>
+#include "DmaSerial.h"
 #include "Sparkfun9DoFSensorStick.h"
-
-template<class T>
-void printVector(T* pVector)
-{
-    printf("%ld,%ld,%ld", (int32_t)pVector->m_x, (int32_t)pVector->m_y, (int32_t)pVector->m_z);
-}
 
 
 int main()
 {
-    if (!MRI_ENABLE)
-    {
-        static Serial pc(USBTX, USBRX);
-        pc.baud(230400);
-    }
+    static Timer timer;
+    timer.start();
+#if !MRI_ENABLE
+    static DmaSerial pc(USBTX, USBRX);
+    pc.baud(230400);
+#endif // !MRI_ENABLE
 
     static Sparkfun9DoFSensorStick sensorStick(p9, p10);
     if (sensorStick.didInitFail())
@@ -35,16 +32,26 @@ int main()
 
     for (;;)
     {
+        char buffer[3*11 + 6*6 + 11 + 9 + 1];
+        int  length;
+
         SensorReadings sensorReadings = sensorStick.getSensorReadings();
         if (sensorStick.didIoFail())
             error("Encountered I2C I/O error during fetch of Sparkfun 9DoF Sensor Stick readings.\n");
 
-        printVector(&sensorReadings.m_accel);
-        printf(",");
-        printVector(&sensorReadings.m_mag);
-        printf(",");
-        printVector(&sensorReadings.m_gyro);
-        printf("\n");
+        length = snprintf(buffer, sizeof(buffer), "%ld,%ld,%ld,%d,%d,%d,%d,%d,%d,%d\n",
+                          sensorReadings.m_accel.m_x, sensorReadings.m_accel.m_y, sensorReadings.m_accel.m_z,
+                          sensorReadings.m_mag.m_x, sensorReadings.m_mag.m_y, sensorReadings.m_mag.m_z,
+                          sensorReadings.m_gyro.m_x, sensorReadings.m_gyro.m_y, sensorReadings.m_gyro.m_z,
+                          timer.read_us());
+        timer.reset();
+        assert( length < (int)sizeof(buffer) );
+
+#if MRI_ENABLE
+        printf("%s", buffer);
+#else
+        pc.dmaTransmit(buffer, length);
+#endif
     }
 
     return 0;

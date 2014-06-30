@@ -87,6 +87,10 @@ void HMC5883L::initMagnetometer()
         writeRegister(CONFIG_B, GAIN_1_3GA);
         if (m_failedIo)
             break;
+        // Prime the read by issuing the first single shot read.
+        writeRegister(MODE, MODE_SINGLE);
+        if (m_failedIo)
+            break;
     }
     while (0);
 
@@ -101,12 +105,6 @@ IntVector<int16_t> HMC5883L::getVector()
 
     do
     {
-        writeRegister(MODE, MODE_SINGLE);
-        if (m_failedIo)
-            break;
-
-        wait_ms(6);
-
         readRegisters(DATA_OUT_X_MSB, &bigEndianData, sizeof(bigEndianData));
         if (m_failedIo)
             break;
@@ -115,6 +113,11 @@ IntVector<int16_t> HMC5883L::getVector()
         vector.m_x = (bigEndianData[0] << 8) | bigEndianData[1];
         vector.m_z = (bigEndianData[2] << 8) | bigEndianData[3];
         vector.m_y = (bigEndianData[4] << 8) | bigEndianData[5];
+
+        // Prime for the next read by issuing the next single shot read.
+        writeRegister(MODE, MODE_SINGLE);
+        if (m_failedIo)
+            break;
     } while (0);
 
     return vector;
