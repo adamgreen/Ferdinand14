@@ -5,7 +5,8 @@ Tracking of the work I am doing for a robot to compete in the
 [[http://www.robothon.org/robothon/index.php | Seattle Center on September 20, 2014]].
 
 ===Points of Interest
-[[https://github.com/adamgreen/Ferdinand14/tree/master#clone-this-repo-and-its-submodules | How to Clone]]\\
+[[https://github.com/adamgreen/Ferdinand14#clone-this-repo-and-its-submodules | How to Clone]]\\
+[[https://github.com/adamgreen/Ferdinand14#sparkfun-9dof-sensor-stick-modifications | Sparkfun 9DoF Sensor Stick Modifications]]\\
 
 
 ==July 1, 2014
