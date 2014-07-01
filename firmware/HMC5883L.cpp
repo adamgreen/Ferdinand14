@@ -98,27 +98,19 @@ void HMC5883L::initMagnetometer()
         m_failedInit = 1;
 }
 
-IntVector<int16_t> HMC5883L::getVector()
+void HMC5883L::getVector(IntVector<int16_t>* pVector)
 {
     uint8_t            bigEndianData[6];
-    IntVector<int16_t> vector;
 
-    do
-    {
-        readRegisters(DATA_OUT_X_MSB, &bigEndianData, sizeof(bigEndianData));
-        if (m_failedIo)
-            break;
+    readRegisters(DATA_OUT_X_MSB, &bigEndianData, sizeof(bigEndianData));
+    if (m_failedIo)
+        return;
 
-        // Data returned from sensor is in big endian byte order with an axis order of X, Z, Y
-        vector.m_x = (bigEndianData[0] << 8) | bigEndianData[1];
-        vector.m_z = (bigEndianData[2] << 8) | bigEndianData[3];
-        vector.m_y = (bigEndianData[4] << 8) | bigEndianData[5];
+    // Data returned from sensor is in big endian byte order with an axis order of X, Z, Y
+    pVector->m_x = (bigEndianData[0] << 8) | bigEndianData[1];
+    pVector->m_z = (bigEndianData[2] << 8) | bigEndianData[3];
+    pVector->m_y = (bigEndianData[4] << 8) | bigEndianData[5];
 
-        // Prime for the next read by issuing the next single shot read.
-        writeRegister(MODE, MODE_SINGLE);
-        if (m_failedIo)
-            break;
-    } while (0);
-
-    return vector;
+    // Prime for the next read by issuing the next single shot read.
+    writeRegister(MODE, MODE_SINGLE);
 }

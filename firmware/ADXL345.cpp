@@ -102,7 +102,7 @@ void ADXL345::initAccelerometer()
 {
     do
     {
-        writeRegister(BW_RATE, RATE_3200);
+        writeRegister(BW_RATE, RATE_100);
         if (m_failedIo)
             break;
         writeRegister(DATA_FORMAT, FULL_RES | RANGE_16G);
@@ -118,14 +118,9 @@ void ADXL345::initAccelerometer()
         m_failedInit = 1;
 }
 
-IntVector<int16_t> ADXL345::getVector()
+void ADXL345::getVector(IntVector<int16_t>* pVector)
 {
-    IntVector<int16_t> vector;
-
-    waitForDataReady();
-    readRegisters(DATAX0, &vector, sizeof(vector));
-
-    return vector;
+    readRegisters(DATAX0, pVector, sizeof(*pVector));
 }
 
 void ADXL345::waitForDataReady()

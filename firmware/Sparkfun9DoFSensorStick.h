@@ -22,7 +22,7 @@
 typedef class SensorReadings
 {
 public:
-    IntVector<int32_t> m_accel;
+    IntVector<int16_t> m_accel;
     IntVector<int16_t> m_mag;
     IntVector<int16_t> m_gyro;
 } SensorReadings;
@@ -38,12 +38,18 @@ public:
     int didIoFail() { return m_failedIo; }
 
 protected:
-    I2C      m_i2c;
-    ADXL345  m_accel;
-    HMC5883L m_mag;
-    ITG3200  m_gyro;
-    int      m_failedInit;
-    int      m_failedIo;
+    void tickHandler();
+
+    Ticker                  m_ticker;
+    I2C                     m_i2c;
+    ADXL345                 m_accel;
+    HMC5883L                m_mag;
+    ITG3200                 m_gyro;
+    volatile int            m_failedInit;
+    volatile int            m_failedIo;
+    volatile uint32_t       m_currentSample;
+    uint32_t                m_lastSample;
+    SensorReadings          m_sensorReadings;
 };
 
 #endif /* SPARKFUN_9DOF_SENSOR_STICK_H_ */

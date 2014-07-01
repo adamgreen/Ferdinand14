@@ -28,9 +28,7 @@ public:
     }
     IntVector()
     {
-        m_x = 0;
-        m_y = 0;
-        m_z = 0;
+        clear();
     }
 
     template <class S>
@@ -39,6 +37,13 @@ public:
         m_x += p->m_x;
         m_y += p->m_y;
         m_z += p->m_z;
+    }
+
+    void clear()
+    {
+        m_x = 0;
+        m_y = 0;
+        m_z = 0;
     }
 
     T m_x;

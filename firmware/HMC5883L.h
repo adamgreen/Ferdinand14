@@ -23,7 +23,7 @@ class HMC5883L : public SensorBase
 public:
     HMC5883L(I2C* pI2C, int address = 0x3C);
 
-    IntVector<int16_t> getVector();
+    void getVector(IntVector<int16_t>* pVector);
 
 protected:
     void initMagnetometer();

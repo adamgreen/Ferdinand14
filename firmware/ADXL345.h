@@ -23,7 +23,7 @@ class ADXL345 : public SensorBase
 public:
     ADXL345(I2C* pI2C, int address = 0xA6);
 
-    IntVector<int16_t> getVector();
+    void getVector(IntVector<int16_t>* pVector);
 
 protected:
     void initAccelerometer();

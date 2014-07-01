@@ -23,7 +23,7 @@ class ITG3200 : public SensorBase
 public:
     ITG3200(I2C* pI2C, int address = 0xD0);
 
-    IntVector<int16_t> getVector();
+    void getVector(IntVector<int16_t>* pVector);
 
 protected:
     void initGyro();

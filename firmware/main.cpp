@@ -39,12 +39,13 @@ int main()
         if (sensorStick.didIoFail())
             error("Encountered I2C I/O error during fetch of Sparkfun 9DoF Sensor Stick readings.\n");
 
-        length = snprintf(buffer, sizeof(buffer), "%ld,%ld,%ld,%d,%d,%d,%d,%d,%d,%d\n",
+        int elapsedTime = timer.read_us();
+        timer.reset();
+        length = snprintf(buffer, sizeof(buffer), "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
                           sensorReadings.m_accel.m_x, sensorReadings.m_accel.m_y, sensorReadings.m_accel.m_z,
                           sensorReadings.m_mag.m_x, sensorReadings.m_mag.m_y, sensorReadings.m_mag.m_z,
                           sensorReadings.m_gyro.m_x, sensorReadings.m_gyro.m_y, sensorReadings.m_gyro.m_z,
-                          timer.read_us());
-        timer.reset();
+                          elapsedTime);
         assert( length < (int)sizeof(buffer) );
 
 #if MRI_ENABLE
