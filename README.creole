@@ -8,6 +8,50 @@ Tracking of the work I am doing for a robot to compete in the
 [[https://github.com/adamgreen/Ferdinand14/tree/master#clone-this-repo-and-its-submodules | How to Clone]]\\
 
 
+==July 1, 2014
+**Happy Canada Day!**
+
+Yesterday I modified the orientation sensor firmware to get the sample rate to be exactly 100Hz.  The changes I made to
+the source code to accomplish this include:
+* Making the code multithreaded.  The sensors are read at 100Hz in a Ticker interrupt handler.  The main thread blocks
+  in getSensorReadings() until the next sensor reading becomes available.
+* Sampling the ADXL345 accelerometer at 100Hz instead of  oversampling at 3200Hz.  This uses a lot less CPU cycles,
+  makes it easy to hit 100Hz, and  appears to have no impact on the signal to noise ratio.
+* No longer having the ADXL345 accelerometer or ITG3200 gyroscope sensor classes wait for the data to be ready before
+  issuing the vector read.  The previous code just wasted CPU cycles since the Ticker object is making sure that they
+  are only called at the required 100Hz.
+
+===Sparkfun 9DoF Sensor Stick Modifications
+I have made two modifications to the Sparkfun 9DoF Sensor Stick to make it work effectively for this project:
+* Added a 10uF 0603 SMD tantalum capacitor close to the analog power supply of the ADXL345 accelerometer.  Having this
+  extra capacitor decreases the noise I see in the accelerometer readings.
+* Switched out the two 4.7k ohm I2C pull-up resistors for stronger 2k ohm resistors.  This decreased the rise time of
+  the I2C signals to under 300 nanoseconds as required for reliable 400kHz operation.
+
+I have updated the schematic to show the 9DoF Sensor Stick circuit after my modifications.  The following image is an
+excerpt from the upper-left hand corner of the updated schematic which includes the aforementioned modifications:
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140630-04.png}}
+
+For more detailed information about the circuit, you can look at the full schematics: \\
+[[https://github.com/adamgreen/Ferdinand14/raw/master/photos/20140630-02.png | original schematic from Sparkfun]] \\
+[[https://github.com/adamgreen/Ferdinand14/raw/master/photos/20140630-03.png | updated schematic]]\\
+
+The following image highlights the 3 devices that were updated as part of my modification process:\\
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140630-05.jpg}}
+
+I used my soldering iron to remove the two existing 4.7k ohm resistors (R1 and R2 in the schematic) and then replaced
+them with 2k ohm resistors of the same 0603 SMD footprint.  In the above image, the two resistors replaced were the two
+highlighted devices labeled as **472**.
+
+I soldered a 10uF tantalum capacitor on top of the existing 0.1uF capacitor (C2 in the schematic).  This device was
+polarized so the positive end of the cap (the end with the white band) was placed to the right, the side connected to
+3.3V.
+
+The following image highlights the 3 devices after I updated them:\\
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140630-06.jpg}}
+
+
 ==June 30, 2014
 {{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140630-01.jpg}}
 
