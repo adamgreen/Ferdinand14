@@ -9,6 +9,38 @@ Tracking of the work I am doing for a robot to compete in the
 [[https://github.com/adamgreen/Ferdinand14#sparkfun-9dof-sensor-stick-modifications | Sparkfun 9DoF Sensor Stick Modifications]]\\
 
 
+==July 7, 2014
+===RoboPeak RPLIDAR Sample in Processing on OS X
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140706-01.png}}
+
+Last Thursday, July 3rd, I worked on creating a Processing port of some C/C++ samples for the RoboPeak
+[[http://rplidar.robopeak.com | RPLIDAR]], a low cost 360 degree 2D laser scanner.  Xandon received one of these devices
+a few days ago but there were no existing OS X and/or Processing samples so I thought I would try to solve that problem.
+I don't actually have one of these devices so I wrote some mbed code to simulate the serial protocol spoken by the
+RPLIDAR unit and used that for initial testing of my Processing code.  I also had a large number of println() statements
+in the code so that Xandon could run the code with the actual RPLIDAR device and send me the resulting log for debugging
+purposes.
+
+For the most part, the porting process went pretty smoothly and we really only encountered one hiccup.  It turns out
+that the USB to serial adapter that RoboPeak ships with the unit has the DTR (Data Terminal Ready) output signal
+connected to the motor enable input on the RPLIDAR unit.  I didn't see any mention of this in the documentation so I
+hadn't done anything special with this signal.  When Xandon would run my code, the RPLIDAR would actually stop spinning
+and not resume to spin until he shutdown my test application.
+[[https://github.com/adamgreen/Ferdinand14/blob/cf4f5b4752cfe35f33affa36e8b6170bd6c19bb8/rplidar/rplidar.pde#L108 | Clearing the DTR signal from my Processing code]]
+fixed that issue and then things progressed with no issue.  By the early hours of July 4th, we were able to talk to the
+RPLIDAR unit from OS X and display the 2D scan results on the screen in real time.
+
+Xandon captured a couple of videos of the RPLIDAR which show the output from my Processing sample:\\
+[[http://www.youtube.com/watch?v=jclezMpSvvo | Video of Xandon demoing RPLIDAR sample inside]]\\
+[[http://www.youtube.com/watch?v=Po3xb9VfLiM | Video of Xandon demoing RPLIDAR sample outside]]\\
+
+The Processing code can be found here:
+[[https://github.com/adamgreen/Ferdinand14/blob/master/rplidar/rplidar.pde]]\\
+The mbed firmware that I used to simulate a RPLIDAR locally can be found here:
+[[https://github.com/adamgreen/Ferdinand14/blob/master/rplidar/firmware/main.cpp]]\\
+
+
+
 ==July 1, 2014
 **Happy Canada Day!**
 
