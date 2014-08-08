@@ -10,11 +10,23 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
+class HeadingSensorCalibration
+{
+  public IntVector   accelMin;
+  public IntVector   accelMax;
+  public IntVector   magMin;
+  public IntVector   magMax;
+  public FloatVector gyroCoefficientA;
+  public FloatVector gyroCoefficientB;
+  public FloatVector gyroScale;
+};
+
 class HeadingSensor
 {
-  HeadingSensor(Serial port, Heading min, Heading max, Heading sampleCounts)
+  HeadingSensor(Serial port, HeadingSensorCalibration calibration, Heading sampleCounts)
   {
-    calibrate(min, max);
+    m_calibration = calibration;
+    calibrate(calibration);
     
     m_averages = new MovingAverage[6];
     m_averages[0] = new MovingAverage(sampleCounts.m_accelX);
@@ -31,24 +43,24 @@ class HeadingSensor
     m_port.bufferUntil('\n');
   }
 
-  void calibrate(Heading min, Heading max)
+  void calibrate(HeadingSensorCalibration c)
   {
-    m_midpoint = new FloatHeading((min.m_accelX + max.m_accelX) / 2.0f,
-                                  (min.m_accelY + max.m_accelY) / 2.0f,
-                                  (min.m_accelZ + max.m_accelZ) / 2.0f,
-                                  (min.m_magX + max.m_magX) / 2.0f,
-                                  (min.m_magY + max.m_magY) / 2.0f,
-                                  (min.m_magZ + max.m_magZ) / 2.0f,
+    m_midpoint = new FloatHeading((c.accelMin.x + c.accelMax.x) / 2.0f,
+                                  (c.accelMin.y + c.accelMax.y) / 2.0f,
+                                  (c.accelMin.z + c.accelMax.z) / 2.0f,
+                                  (c.magMin.x + c.magMax.x) / 2.0f,
+                                  (c.magMin.y + c.magMax.y) / 2.0f,
+                                  (c.magMin.z + c.magMax.z) / 2.0f,
                                   0.0f,
                                   0.0f,
                                   0.0f,
                                   0.0f);
-    m_scale = new FloatHeading((max.m_accelX - min.m_accelX) / 2.0f,
-                               (max.m_accelY - min.m_accelY) / 2.0f,
-                               (max.m_accelZ - min.m_accelZ) / 2.0f,
-                               (max.m_magX - min.m_magX) / 2.0f,
-                               (max.m_magY - min.m_magY) / 2.0f,
-                               (max.m_magZ - min.m_magZ) / 2.0f,
+    m_scale = new FloatHeading((c.accelMax.x - c.accelMin.x) / 2.0f,
+                               (c.accelMax.y - c.accelMin.y) / 2.0f,
+                               (c.accelMax.z - c.accelMin.z) / 2.0f,
+                               (c.magMax.x - c.magMin.x) / 2.0f,
+                               (c.magMax.y - c.magMin.y) / 2.0f,
+                               (c.magMax.z - c.magMin.z) / 2.0f,
                                1.0f,
                                1.0f,
                                1.0f,
@@ -92,7 +104,7 @@ class HeadingSensor
     return m_currentRaw;
   }
   
-  Heading getFiltered()
+  Heading getCurrentMovingAverage()
   {
     return new Heading(m_averages[0].getAverage(),
                        m_averages[1].getAverage(),
@@ -108,29 +120,43 @@ class HeadingSensor
   
   FloatHeading getCurrentFiltered()
   {
+    FloatVector gyro = getCalibratedGyroData();
     return new FloatHeading((m_averages[0].getAverage() - m_midpoint.m_accelX) / m_scale.m_accelX,
                             (m_averages[1].getAverage() - m_midpoint.m_accelY) / m_scale.m_accelY,
                             (m_averages[2].getAverage() - m_midpoint.m_accelZ) / m_scale.m_accelZ,
                             (m_averages[3].getAverage() - m_midpoint.m_magX) / m_scale.m_magX,
                             (m_averages[4].getAverage() - m_midpoint.m_magY) / m_scale.m_magY,
                             (m_averages[5].getAverage() - m_midpoint.m_magZ) / m_scale.m_magZ,
-                            m_currentRaw.m_gyroX,
-                            m_currentRaw.m_gyroY,
-                            m_currentRaw.m_gyroZ,
+                            gyro.x,
+                            gyro.y,
+                            gyro.z,
                             m_currentRaw.m_gyroTemperature);
+  }
+  
+  FloatVector getCalibratedGyroData()
+  {
+    FloatVector result = new FloatVector();
+    result.x = m_currentRaw.m_gyroX - (m_currentRaw.m_gyroTemperature * m_calibration.gyroCoefficientA.x + m_calibration.gyroCoefficientB.x);
+    result.y = m_currentRaw.m_gyroY - (m_currentRaw.m_gyroTemperature * m_calibration.gyroCoefficientA.y + m_calibration.gyroCoefficientB.y);
+    result.z = m_currentRaw.m_gyroZ - (m_currentRaw.m_gyroTemperature * m_calibration.gyroCoefficientA.z + m_calibration.gyroCoefficientB.z);
+    result.x *= radians(1.0f / m_calibration.gyroScale.x);
+    result.y *= radians(1.0f / m_calibration.gyroScale.y);
+    result.z *= radians(1.0f / m_calibration.gyroScale.z);
+    return result;
   }
   
   FloatHeading getCurrent()
   {
+    FloatVector gyro = getCalibratedGyroData();
     return new FloatHeading((m_currentRaw.m_accelX - m_midpoint.m_accelX) / m_scale.m_accelX,
                             (m_currentRaw.m_accelY - m_midpoint.m_accelY) / m_scale.m_accelY,
                             (m_currentRaw.m_accelZ - m_midpoint.m_accelZ) / m_scale.m_accelZ,
                             (m_currentRaw.m_magX - m_midpoint.m_magX) / m_scale.m_magX,
                             (m_currentRaw.m_magY - m_midpoint.m_magY) / m_scale.m_magY,
                             (m_currentRaw.m_magZ - m_midpoint.m_magZ) / m_scale.m_magZ,
-                            m_currentRaw.m_gyroX,
-                            m_currentRaw.m_gyroY,
-                            m_currentRaw.m_gyroZ,
+                            gyro.x,
+                            gyro.y,
+                            gyro.z,
                             m_currentRaw.m_gyroTemperature);                           
   }
   
@@ -144,6 +170,7 @@ class HeadingSensor
     return m_max;
   }
   
+  HeadingSensorCalibration m_calibration;
   Serial  m_port;
   Heading m_currentRaw = new Heading();
   Heading m_min = new Heading(0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF,
