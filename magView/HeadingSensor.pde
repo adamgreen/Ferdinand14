@@ -46,7 +46,7 @@ class HeadingSensor
       return;
       
     String[] tokens = splitTokens(line, ",\n");
-    if (tokens.length == 10)
+    if (tokens.length == 11)
     {
       m_currentRaw.m_accelX = int(tokens[0]);
       m_currentRaw.m_accelY = int(tokens[1]);

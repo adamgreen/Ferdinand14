@@ -111,15 +111,16 @@ void ITG3200::waitForPllReady()
     } while ((intStatus & ITG_RDY) == 0);
 }
 
-void ITG3200::getVector(IntVector<int16_t>* pVector)
+void ITG3200::getVector(IntVector<int16_t>* pVector, int16_t* pTemperature)
 {
-    char                bigEndianDataWithTemp[8];
+    char bigEndianDataWithTemp[8];
 
     readRegisters(TEMP_OUT_H, bigEndianDataWithTemp, sizeof(bigEndianDataWithTemp));
     if (m_failedIo)
         return;
 
-    // Data returned is big endian and includes temperature which we are discarding for now.
+    // Data returned is big endian so byte swap.
+    *pTemperature = (bigEndianDataWithTemp[0] << 8) | bigEndianDataWithTemp[1];
     pVector->m_x = (bigEndianDataWithTemp[2] << 8) | bigEndianDataWithTemp[3];
     pVector->m_y = (bigEndianDataWithTemp[4] << 8) | bigEndianDataWithTemp[5];
     pVector->m_z = (bigEndianDataWithTemp[6] << 8) | bigEndianDataWithTemp[7];

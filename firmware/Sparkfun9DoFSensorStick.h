@@ -25,6 +25,7 @@ public:
     IntVector<int16_t> m_accel;
     IntVector<int16_t> m_mag;
     IntVector<int16_t> m_gyro;
+    int16_t            m_gyroTemperature;
 } SensorReadings;
 
 

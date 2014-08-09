@@ -47,7 +47,7 @@ void Sparkfun9DoFSensorStick::tickHandler()
         if (m_mag.didIoFail())
             break;
 
-        m_gyro.getVector(&m_sensorReadings.m_gyro);
+        m_gyro.getVector(&m_sensorReadings.m_gyro, &m_sensorReadings.m_gyroTemperature);
         if (m_gyro.didIoFail())
             break;
 

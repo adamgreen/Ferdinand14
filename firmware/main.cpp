@@ -32,7 +32,9 @@ int main()
 
     for (;;)
     {
-        char buffer[3*11 + 6*6 + 11 + 9 + 1];
+        // String buffer for ten 16-bit integer sensor readings, one 32-bit time integer, ten comma separators,
+        // and one '\0' terminator.
+        char buffer[10*6 + 1*11 + 10 + 1];
         int  length;
 
         SensorReadings sensorReadings = sensorStick.getSensorReadings();
@@ -41,10 +43,11 @@ int main()
 
         int elapsedTime = timer.read_us();
         timer.reset();
-        length = snprintf(buffer, sizeof(buffer), "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
+        length = snprintf(buffer, sizeof(buffer), "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
                           sensorReadings.m_accel.m_x, sensorReadings.m_accel.m_y, sensorReadings.m_accel.m_z,
                           sensorReadings.m_mag.m_x, sensorReadings.m_mag.m_y, sensorReadings.m_mag.m_z,
                           sensorReadings.m_gyro.m_x, sensorReadings.m_gyro.m_y, sensorReadings.m_gyro.m_z,
+                          sensorReadings.m_gyroTemperature,
                           elapsedTime);
         assert( length < (int)sizeof(buffer) );
 
