@@ -7,5 +7,7 @@
 *.o
 *.d
 *.a
+gyro.csv
+stats.csv
 mri.log
 debug
