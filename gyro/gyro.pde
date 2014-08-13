@@ -22,6 +22,18 @@ float[]                  g_rotationQuaternion = {1.0f, 0.0f, 0.0f, 0.0f};
 float[]                  g_currentRotation = {0.0f, 0.0f, 0.0f};
 boolean                  g_dumpRotations = false;
 
+// Used for calculating statistics (variance in particular) of sensors effects on
+// their corresponding quaternions.
+double[]                 g_gyroSum = {0.0, 0.0, 0.0, 0.0};
+double[]                 g_gyroSquaredSum = {0.0, 0.0, 0.0, 0.0};
+int                      g_gyroSampleCount = 0;
+final int                g_gyroSamplesToCount = 1000;
+double[]                 g_accelMagSum = {0.0f, 0.0f, 0.0f, 0.0f};
+double[]                 g_accelMagSquaredSum = {0.0f, 0.0f, 0.0f, 0.0f};
+int                      g_accelMagSampleCount = 0;
+final int                g_accelMagSamplesToCount = 1000;
+
+
 void setup() 
 {
   size(1024, 768, OPENGL);
@@ -151,7 +163,8 @@ void draw()
   g_rotationQuaternion[1] = x;
   g_rotationQuaternion[2] = y;
   g_rotationQuaternion[3] = z;
-
+  updateAccelMagStats(g_rotationQuaternion);
+  
   // Convert quaternion to rotation matrix.
   w = g_rotationQuaternion[0];
   x = g_rotationQuaternion[1];
@@ -322,7 +335,8 @@ void serialEvent(Serial port)
                                        gyroX,   1.0f,  gyroZ, -gyroY,
                                        gyroY, -gyroZ,   1.0f,  gyroX,
                                        gyroZ,  gyroY, -gyroX, 1.0f);
-
+  updateGyroStats(gyroMatrix);
+  
   float[] updatedQuaternion = new float[4];
   gyroMatrix.mult(g_rotationQuaternion, updatedQuaternion);
   g_rotationQuaternion = updatedQuaternion;
@@ -344,6 +358,107 @@ void serialEvent(Serial port)
   {
     println(degrees(g_currentRotation[0]) + "," + degrees(g_currentRotation[1]) + "," + degrees(g_currentRotation[2]));
   }
+}
+
+void updateAccelMagStats(float[] q)
+{
+  // Accumulate these results.
+  quaternionAdd(g_accelMagSum, q);
+  quaternionAddSquared(g_accelMagSquaredSum, q);
+  g_accelMagSampleCount++;
+  
+  // Calculate mean/variance once enough samples have been accumualted.
+  if (g_accelMagSampleCount < g_accelMagSamplesToCount)
+    return;
+  double[] mean = new double[4];
+  double[] variance = new double[4];
+  quaternionStats(mean, variance, g_accelMagSum, g_accelMagSquaredSum, g_accelMagSampleCount);
+  println("Accel/Mag Quaternion Stats");
+  print("    mean:"); quaternionPrint(mean);
+  print("variance:"); quaternionPrint(variance);
+  
+  // Prepare to start accumulate next chunk of stats.
+  for (int i = 0 ; i < g_accelMagSum.length ; i++)
+  {
+    g_accelMagSum[i] = 0.0;
+    g_accelMagSquaredSum[i] = 0.0;
+  }
+  g_accelMagSampleCount = 0;
+}
+
+void updateGyroStats(PMatrix3D orig)
+{
+  // Try updating a quaternion of all 1's to see the type of mean/variances the
+  // gyro sensor measurements cause in this calculation.
+  PMatrix3D m = new PMatrix3D(orig);
+  float[]   quaternion = {1.0f, 1.0f, 1.0f, 1.0f};
+  float[]   updatedQuaternion = new float[4];
+  m.mult(quaternion, updatedQuaternion);
+  
+  // Accumulate these results.
+  quaternionAdd(g_gyroSum, updatedQuaternion);
+  quaternionAddSquared(g_gyroSquaredSum, updatedQuaternion);
+  g_gyroSampleCount++;
+  
+  // Calculate mean/variance once enough samples have been accumualted.
+  if (g_gyroSampleCount < g_gyroSamplesToCount)
+    return;
+  double[] mean = new double[4];
+  double[] variance = new double[4];
+  quaternionStats(mean, variance, g_gyroSum, g_gyroSquaredSum, g_gyroSampleCount);
+  println("Gyro Quaternion Stats");
+  print("    mean:"); quaternionPrint(mean);
+  print("variance:"); quaternionPrint(variance);
+  
+  // Prepare to start accumulate next chunk of stats.
+  for (int i = 0 ; i < g_gyroSum.length ; i++)
+  {
+    g_gyroSum[i] = 0.0;
+    g_gyroSquaredSum[i] = 0.0;
+  }
+  g_gyroSampleCount = 0;
+}
+
+void quaternionNormalize(float[] q)
+{
+  float magnitude = sqrt(q[0] * q[0] +
+                         q[1] * q[1] +  
+                         q[2] * q[2] +  
+                         q[3] * q[3]);
+  q[0] /= magnitude;
+  q[1] /= magnitude;
+  q[2] /= magnitude;
+  q[3] /= magnitude;
+}
+
+void quaternionAdd(double[] q1, float[] q2)
+{
+  q1[0] += (double)q2[0];
+  q1[1] += (double)q2[1];
+  q1[2] += (double)q2[2];
+  q1[3] += (double)q2[3];
+}
+
+void quaternionAddSquared(double[] q1, float[] q2)
+{
+  q1[0] += (double)q2[0] * (double)q2[0];
+  q1[1] += (double)q2[1] * (double)q2[1];
+  q1[2] += (double)q2[2] * (double)q2[2];
+  q1[3] += (double)q2[3] * (double)q2[3];
+}
+
+void quaternionStats(double[] mean, double[] variance, double[] sum, double[] sumSquared, int samples)
+{
+  for (int i = 0 ; i < mean.length ; i++)
+  {
+    mean[i] = sum[i] / samples;
+    variance[i] = (sumSquared[i] - ((sum[i] * sum[i]) / samples)) / (samples - 1);
+  }
+}
+
+void quaternionPrint(double[] m)
+{
+  println(m[0] + ", " + m[1] + ", " + m[2] + ", " + m[3]);
 }
 
 void keyPressed()
