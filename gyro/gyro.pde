@@ -67,7 +67,7 @@ void draw()
     g_samples = 0;
   }
   
-  FloatHeading heading = g_headingSensor.getCurrentFiltered();
+  FloatHeading heading = g_headingSensor.getCurrent();
 
   // Setup gravity (down) and north vectors.
   // NOTE: The fields are swizzled to make the axis on the device match the axis on the screen.
@@ -321,7 +321,7 @@ void serialEvent(Serial port)
   g_samples++;
   
   // Retrieve latest gyro readings and swizzle the axis so that gyro's axis match overall sensor setup.
-  FloatHeading heading = g_headingSensor.getCurrentFiltered();
+  FloatHeading heading = g_headingSensor.getCurrent();
   float gyroX = heading.m_gyroY;
   float gyroY = heading.m_gyroZ;
   float gyroZ = heading.m_gyroX;
