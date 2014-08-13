@@ -45,9 +45,6 @@ void setup()
 
 void draw()
 {
-  // Setup 3d transformations other than rotation which will come next.
-  translate(width / 2, height / 2, 0);
-  scale(5.0f, 5.0f, 5.0f);
   background(100);
 
   int elapsedTime = millis() - g_lastSampleCount;
@@ -59,7 +56,7 @@ void draw()
   }
   
   FloatHeading heading = g_headingSensor.getCurrentFiltered();
-/*
+
   // Setup gravity (down) and north vectors.
   // NOTE: The fields are swizzled to make the axis on the device match the axis on the screen.
   PVector down = new PVector(heading.m_accelY, heading.m_accelZ, heading.m_accelX);
@@ -70,6 +67,7 @@ void draw()
   north.sub(PVector.mult(down, north.dot(down)));
   north.normalize();
 
+/* UNDONE: I don't know if I need this anymore.  If I do bring back then need to update compass location.
   // If the user has pressed the space key, then move the camera to face the device front.
   if (g_zeroRotation)
   {
@@ -79,11 +77,86 @@ void draw()
     g_zeroRotation = false;
   }
 */
+  // To create a rotation matrix, we need all 3 basis vectors so calculate the vector which
+  // is orthogonal to both the down and north vectors (ie. the normalized cross product).
+  PVector west = north.cross(down);
+  west.normalize();
+  g_rotationMatrix = new PMatrix3D(north.x, north.y, north.z, 0.0,
+                                   down.x, down.y, down.z, 0.0,
+                                   west.x, west.y, west.z, 0.0,
+                                   0.0, 0.0, 0.0, 1.0);
+                                   
+  // Convert rotation matrix into normalized quaternion.
+  float w = 0.0f;
+  float x = 0.0f;
+  float y = 0.0f;
+  float z = 0.0f;
+  float[] rotationQuaternion = new float[4];
+  float trace = g_rotationMatrix.m00 + g_rotationMatrix.m11 + g_rotationMatrix.m22;
+  if (trace > 0.0f)
+  {
+    w = sqrt(trace + 1.0f) / 2.0f;
+    float lambda = 1.0f / (4.0f * w);
+    x = lambda * (g_rotationMatrix.m21 - g_rotationMatrix.m12);
+    y = lambda * (g_rotationMatrix.m02 - g_rotationMatrix.m20);
+    z = lambda * (g_rotationMatrix.m10 - g_rotationMatrix.m01);
+  }
+  else
+  {
+    if (g_rotationMatrix.m00 > g_rotationMatrix.m11)
+    {
+      if (g_rotationMatrix.m00 > g_rotationMatrix.m22)
+      {
+          // m00 is the largest value on diagonal.
+          x = sqrt(g_rotationMatrix.m00 - g_rotationMatrix.m11 - g_rotationMatrix.m22 + 1.0f) / 2.0f;
+          float lambda = 1.0f / (4.0f * x);
+          w = lambda * (g_rotationMatrix.m21 - g_rotationMatrix.m12);
+          y = lambda * (g_rotationMatrix.m01 + g_rotationMatrix.m10);
+          z = lambda * (g_rotationMatrix.m02 + g_rotationMatrix.m20);
+      }
+      else
+      {
+          // m22 is the largest value on diagonal.
+          z = sqrt(g_rotationMatrix.m22 - g_rotationMatrix.m00 - g_rotationMatrix.m11 + 1.0f) / 2.0f;
+          float lambda = 1.0f / (4.0f * z);
+          w = lambda * (g_rotationMatrix.m10 - g_rotationMatrix.m01);
+          x = lambda * (g_rotationMatrix.m02 + g_rotationMatrix.m20);
+          y = lambda * (g_rotationMatrix.m12 + g_rotationMatrix.m21);
+      }
+    }
+    else
+    {
+      if (g_rotationMatrix.m11 > g_rotationMatrix.m22)
+      {
+        // m11 is the largest value on diagonal.
+        y = sqrt(g_rotationMatrix.m11 - g_rotationMatrix.m00 - g_rotationMatrix.m22 + 1.0f) / 2.0f;
+        float lambda = 1.0f / (4.0f * y);
+        w = lambda * (g_rotationMatrix.m02 - g_rotationMatrix.m20);
+        x = lambda * (g_rotationMatrix.m01 + g_rotationMatrix.m10);
+        z = lambda * (g_rotationMatrix.m12 + g_rotationMatrix.m21);
+      }
+      else
+      {
+          // m22 is the largest value on diagonal.
+          // UNDONE: This is duplicated code.
+          z = sqrt(g_rotationMatrix.m22 - g_rotationMatrix.m00 - g_rotationMatrix.m11 + 1.0f) / 2.0f;
+          float lambda = 1.0f / (4.0f * z);
+          w = lambda * (g_rotationMatrix.m10 - g_rotationMatrix.m01);
+          x = lambda * (g_rotationMatrix.m02 + g_rotationMatrix.m20);
+          y = lambda * (g_rotationMatrix.m12 + g_rotationMatrix.m21);
+      }
+    }
+  }
+  g_rotationQuaternion[0] = w;
+  g_rotationQuaternion[1] = x;
+  g_rotationQuaternion[2] = y;
+  g_rotationQuaternion[3] = z;
+
   // Convert quaternion to rotation matrix.
-  float w = g_rotationQuaternion[0];
-  float x = g_rotationQuaternion[1];
-  float y = g_rotationQuaternion[2];
-  float z = g_rotationQuaternion[3];
+  w = g_rotationQuaternion[0];
+  x = g_rotationQuaternion[1];
+  y = g_rotationQuaternion[2];
+  z = g_rotationQuaternion[3];
   
   float x2 = x * 2;
   float y2 = y * 2;
@@ -98,28 +171,28 @@ void draw()
   float yz2 = y * z2;
   float zz2 = z * z2;
 
-  g_rotationMatrix = new PMatrix3D(1.0f - yy2 - zz2, xy2 + wz2, xz2 - wy2, 0.0f,
-                                   xy2 - wz2, 1.0f - xx2 - zz2, yz2 + wx2, 0.0f,
-                                   xz2 + wy2, yz2 - wx2, 1.0f - xx2 - yy2, 0.0f,
-                                   0.0f, 0.0f, 0.0f, 1.0f);
-
-  g_rotationMatrix.transpose();
-  
-/*  
-  // To create a rotation matrix, we need all 3 basis vectors so calculate the vector which
-  // is orthogonal to both the down and north vectors (ie. the normalized cross product).
-  PVector west = north.cross(down);
-  west.normalize();
-  g_rotationMatrix = new PMatrix3D(north.x, north.y, north.z, 0.0,
-                                   down.x, down.y, down.z, 0.0,
-                                   west.x, west.y, west.z, 0.0,
-                                   0.0, 0.0, 0.0, 1.0);
-*/
-
+  g_rotationMatrix = new PMatrix3D(1.0f - yy2 - zz2,        xy2 - wz2,        xz2 + wy2, 0.0f,
+                                          xy2 + wz2, 1.0f - xx2 - zz2,        yz2 - wx2, 0.0f,
+                                          xz2 - wy2,        yz2 + wx2, 1.0f - xx2 - yy2, 0.0f,
+                                               0.0f,             0.0f,             0.0f, 1.0f);
   
   // Rotate the rendered box using the calculated rotation matrix.
+  pushMatrix();
+  translate(width / 2, height / 2, 0);
+  scale(5.0f, 5.0f, 5.0f);
   applyMatrix(g_rotationMatrix);
+  drawBox();
+  popMatrix();
+  
+  // Calculate the yaw angle and rotate the compass image accordingly.
+  /*PVector*/ north = new PVector(g_rotationMatrix.m00, g_rotationMatrix.m01, g_rotationMatrix.m02);
+  float headingAngle = atan2(-north.z, north.x);
+  translate(width - 150, height - 150, 0);
+  drawCompass(headingAngle);
+}
 
+void drawBox()
+{
   // Draw four sides of box with different colours on each.
   stroke(160);
   fill(82, 10, 242);
@@ -169,6 +242,61 @@ void draw()
     vertex(25, -10, 50);
     vertex(25, -10, -50);
   endShape();
+}
+
+void drawCompass(float angle)
+{
+  rotateX(radians(-90));
+
+  noStroke();
+  fill(255, 0, 0);
+  drawCylinder(100, 100, 10, 64);
+
+  fill(0, 0, 255);
+  rotateY(angle);
+  translate(2.5, 0, 50);
+  box(5, 10, 100);
+}
+
+void drawCylinder(float topRadius, float bottomRadius, float tall, int sides) 
+{
+  float angle = 0;
+  float angleIncrement = TWO_PI / sides;
+  beginShape(QUAD_STRIP);
+  for (int i = 0; i < sides + 1; ++i) {
+    vertex(topRadius*cos(angle), 0, topRadius*sin(angle));
+    vertex(bottomRadius*cos(angle), tall, bottomRadius*sin(angle));
+    angle += angleIncrement;
+  }
+  endShape();
+
+  // If it is not a cone, draw the circular top cap
+  if (topRadius != 0) {
+    angle = 0;
+    beginShape(TRIANGLE_FAN);
+
+    // Center point
+    vertex(0, 0, 0);
+    for (int i = 0; i < sides + 1; i++) {
+      vertex(topRadius * cos(angle), 0, topRadius * sin(angle));
+      angle += angleIncrement;
+    }
+    endShape();
+  }
+
+  // If it is not a cone, draw the circular bottom cap
+  if (bottomRadius != 0) {
+    angle = 0;
+    beginShape(TRIANGLE_FAN);
+
+    // Center point
+    vertex(0, tall, 0);
+    for (int i = 0; i < sides + 1; i++) {
+      vertex(bottomRadius * cos(angle), tall, bottomRadius * sin(angle));
+      angle += angleIncrement;
+    }
+    endShape();
+  }
 }
 
 void serialEvent(Serial port)
