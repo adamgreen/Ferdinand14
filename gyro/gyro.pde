@@ -12,32 +12,42 @@
 */
 import processing.serial.*;
 
+// Can base the 3D orientation of the sensor on gyros alone, accelerometer/magnetometer
+// combination or Kalman filter to fuse all 3 sources together. 
+final int GYRO = 0;
+final int ACCEL_MAG = 1;
+final int KALMAN = 2;
+
 HeadingSensorCalibration g_calibration;
 HeadingSensor            g_headingSensor;
-PMatrix3D                g_rotationMatrix;
 boolean                  g_zeroRotation = false;
 int                      g_samples = 0;
 int                      g_lastSampleCount;
 float[]                  g_rotationQuaternion = {1.0f, 0.0f, 0.0f, 0.0f};
-float[]                  g_currentRotation = {0.0f, 0.0f, 0.0f};
-boolean                  g_dumpRotations = false;
+int                      g_rotationSource = ACCEL_MAG;
+int                      g_fontHeight;
+PFont                    g_font;
 
 // Used for calculating statistics (variance in particular) of sensors effects on
 // their corresponding quaternions.
 double[]                 g_gyroSum = {0.0, 0.0, 0.0, 0.0};
 double[]                 g_gyroSquaredSum = {0.0, 0.0, 0.0, 0.0};
 int                      g_gyroSampleCount = 0;
-final int                g_gyroSamplesToCount = 1000;
+final int                g_gyroSamplesToCount = 100000;
 double[]                 g_accelMagSum = {0.0f, 0.0f, 0.0f, 0.0f};
 double[]                 g_accelMagSquaredSum = {0.0f, 0.0f, 0.0f, 0.0f};
 int                      g_accelMagSampleCount = 0;
-final int                g_accelMagSamplesToCount = 1000;
+final int                g_accelMagSamplesToCount = 100000;
 
 
 void setup() 
 {
   size(1024, 768, OPENGL);
   fill(255, 0, 0);
+
+  g_font = loadFont("Monaco-24.vlw");
+  textFont(g_font);
+  g_fontHeight = int(textAscent() + textDescent() + 0.5f);
 
   ConfigFile configFile = new ConfigFile(System.getenv("USER") + ".config");
   Serial port = new Serial(this, configFile.getString("compass.port"), 230400);
@@ -67,141 +77,41 @@ void draw()
     g_samples = 0;
   }
   
-  FloatHeading heading = g_headingSensor.getCurrent();
+  // Convert rotation quaternion into a 4x4 rotation matrix to be used for rendering.
+  PMatrix3D rotationMatrix = quaternionToMatrix(g_rotationQuaternion);
+  
+  // Calculate the yaw angle (rotation about y axis) from the rotation matrix.
+  PVector north = new PVector(rotationMatrix.m00, rotationMatrix.m01, rotationMatrix.m02);
+  float headingAngle = atan2(-north.z, north.x);
 
-  // Setup gravity (down) and north vectors.
-  // NOTE: The fields are swizzled to make the axis on the device match the axis on the screen.
-  PVector down = new PVector(heading.m_accelY, heading.m_accelZ, heading.m_accelX);
-  PVector north = new PVector(-heading.m_magX, heading.m_magZ, heading.m_magY);
-
-  // Project the north vector onto the earth surface plane.
-  down.normalize();
-  north.sub(PVector.mult(down, north.dot(down)));
-  north.normalize();
-
-/* UNDONE: I don't know if I need this anymore.  If I do bring back then need to update compass location.
   // If the user has pressed the space key, then move the camera to face the device front.
   if (g_zeroRotation)
   {
     PVector cam = new PVector(0, (height / 2.0) / tan(radians(30.0)));
-    cam.rotate(atan2(-north.z, north.x));
+    cam.rotate(headingAngle);
     camera(cam.x + width/2.0, height/2.0, cam.y, width/2.0, height/2.0, 0, 0, 1, 0);
     g_zeroRotation = false;
   }
-*/
-  // To create a rotation matrix, we need all 3 basis vectors so calculate the vector which
-  // is orthogonal to both the down and north vectors (ie. the normalized cross product).
-  PVector west = north.cross(down);
-  west.normalize();
-  g_rotationMatrix = new PMatrix3D(north.x, north.y, north.z, 0.0,
-                                   down.x, down.y, down.z, 0.0,
-                                   west.x, west.y, west.z, 0.0,
-                                   0.0, 0.0, 0.0, 1.0);
-                                   
-  // Convert rotation matrix into normalized quaternion.
-  float w = 0.0f;
-  float x = 0.0f;
-  float y = 0.0f;
-  float z = 0.0f;
-  float[] rotationQuaternion = new float[4];
-  float trace = g_rotationMatrix.m00 + g_rotationMatrix.m11 + g_rotationMatrix.m22;
-  if (trace > 0.0f)
-  {
-    w = sqrt(trace + 1.0f) / 2.0f;
-    float lambda = 1.0f / (4.0f * w);
-    x = lambda * (g_rotationMatrix.m21 - g_rotationMatrix.m12);
-    y = lambda * (g_rotationMatrix.m02 - g_rotationMatrix.m20);
-    z = lambda * (g_rotationMatrix.m10 - g_rotationMatrix.m01);
-  }
-  else
-  {
-    if (g_rotationMatrix.m00 > g_rotationMatrix.m11)
-    {
-      if (g_rotationMatrix.m00 > g_rotationMatrix.m22)
-      {
-          // m00 is the largest value on diagonal.
-          x = sqrt(g_rotationMatrix.m00 - g_rotationMatrix.m11 - g_rotationMatrix.m22 + 1.0f) / 2.0f;
-          float lambda = 1.0f / (4.0f * x);
-          w = lambda * (g_rotationMatrix.m21 - g_rotationMatrix.m12);
-          y = lambda * (g_rotationMatrix.m01 + g_rotationMatrix.m10);
-          z = lambda * (g_rotationMatrix.m02 + g_rotationMatrix.m20);
-      }
-      else
-      {
-          // m22 is the largest value on diagonal.
-          z = sqrt(g_rotationMatrix.m22 - g_rotationMatrix.m00 - g_rotationMatrix.m11 + 1.0f) / 2.0f;
-          float lambda = 1.0f / (4.0f * z);
-          w = lambda * (g_rotationMatrix.m10 - g_rotationMatrix.m01);
-          x = lambda * (g_rotationMatrix.m02 + g_rotationMatrix.m20);
-          y = lambda * (g_rotationMatrix.m12 + g_rotationMatrix.m21);
-      }
-    }
-    else
-    {
-      if (g_rotationMatrix.m11 > g_rotationMatrix.m22)
-      {
-        // m11 is the largest value on diagonal.
-        y = sqrt(g_rotationMatrix.m11 - g_rotationMatrix.m00 - g_rotationMatrix.m22 + 1.0f) / 2.0f;
-        float lambda = 1.0f / (4.0f * y);
-        w = lambda * (g_rotationMatrix.m02 - g_rotationMatrix.m20);
-        x = lambda * (g_rotationMatrix.m01 + g_rotationMatrix.m10);
-        z = lambda * (g_rotationMatrix.m12 + g_rotationMatrix.m21);
-      }
-      else
-      {
-          // m22 is the largest value on diagonal.
-          // UNDONE: This is duplicated code.
-          z = sqrt(g_rotationMatrix.m22 - g_rotationMatrix.m00 - g_rotationMatrix.m11 + 1.0f) / 2.0f;
-          float lambda = 1.0f / (4.0f * z);
-          w = lambda * (g_rotationMatrix.m10 - g_rotationMatrix.m01);
-          x = lambda * (g_rotationMatrix.m02 + g_rotationMatrix.m20);
-          y = lambda * (g_rotationMatrix.m12 + g_rotationMatrix.m21);
-      }
-    }
-  }
-  g_rotationQuaternion[0] = w;
-  g_rotationQuaternion[1] = x;
-  g_rotationQuaternion[2] = y;
-  g_rotationQuaternion[3] = z;
-  updateAccelMagStats(g_rotationQuaternion);
-  
-  // Convert quaternion to rotation matrix.
-  w = g_rotationQuaternion[0];
-  x = g_rotationQuaternion[1];
-  y = g_rotationQuaternion[2];
-  z = g_rotationQuaternion[3];
-  
-  float x2 = x * 2;
-  float y2 = y * 2;
-  float z2 = z * 2;
-  float wx2 = w * x2;
-  float wy2 = w * y2;
-  float wz2 = w * z2;
-  float xx2 = x * x2;
-  float xy2 = x * y2;
-  float xz2 = x * z2;
-  float yy2 = y * y2;
-  float yz2 = y * z2;
-  float zz2 = z * z2;
 
-  g_rotationMatrix = new PMatrix3D(1.0f - yy2 - zz2,        xy2 - wz2,        xz2 + wy2, 0.0f,
-                                          xy2 + wz2, 1.0f - xx2 - zz2,        yz2 - wx2, 0.0f,
-                                          xz2 - wy2,        yz2 + wx2, 1.0f - xx2 - yy2, 0.0f,
-                                               0.0f,             0.0f,             0.0f, 1.0f);
-  
   // Rotate the rendered box using the calculated rotation matrix.
   pushMatrix();
-  translate(width / 2, height / 2, 0);
-  scale(5.0f, 5.0f, 5.0f);
-  applyMatrix(g_rotationMatrix);
-  drawBox();
+    translate(width / 2, height / 2, 0);
+    scale(5.0f, 5.0f, 5.0f);
+    applyMatrix(rotationMatrix);
+    drawBox();
+  popMatrix();
+
+  // UNDONE: How to handle the fact that camera can be moved around with the space bar.  
+  // Rotate the compass image accordingly.
+  pushMatrix();
+    translate(width - 150, height - 150, 0);
+    drawCompass(headingAngle);
   popMatrix();
   
-  // Calculate the yaw angle and rotate the compass image accordingly.
-  /*PVector*/ north = new PVector(g_rotationMatrix.m00, g_rotationMatrix.m01, g_rotationMatrix.m02);
-  float headingAngle = atan2(-north.z, north.x);
-  translate(width - 150, height - 150, 0);
-  drawCompass(headingAngle);
+  // UNDONE: How to handle the fact that the camera can be around with the space bar?
+  // Display rotation source to user.
+  fill(255);
+  text(getRotationSourceString(), 10, g_fontHeight);
 }
 
 void drawBox()
@@ -312,6 +222,21 @@ void drawCylinder(float topRadius, float bottomRadius, float tall, int sides)
   }
 }
 
+String getRotationSourceString()
+{
+  switch (g_rotationSource)
+  {
+  case GYRO:
+    return "Gyro";
+  case ACCEL_MAG:
+    return "Accel/Mag";
+  case KALMAN:
+    return "Kalman";
+  }
+  
+  return "";
+}
+
 void serialEvent(Serial port)
 {
   if (g_headingSensor == null)
@@ -320,8 +245,30 @@ void serialEvent(Serial port)
     return;
   g_samples++;
   
-  // Retrieve latest gyro readings and swizzle the axis so that gyro's axis match overall sensor setup.
+  // Retrieve latest calibrated sensor readings with no filtering applied. 
   FloatHeading heading = g_headingSensor.getCurrent();
+  
+  // Calculate rotation based on gyro only.
+  float[] gyroQuaternion = calculateGyroRotation(heading, g_rotationQuaternion);
+  
+  // Calculate rotation based on accelerometer and magnetometer.
+  float[] accelMagQuaternion = calculateAccelMagRotation(heading);
+  
+  // Select which rotation quaternion to actually use for rendering.
+  switch (g_rotationSource)
+  {
+  case GYRO:
+    g_rotationQuaternion = gyroQuaternion;
+    break;
+  case ACCEL_MAG:
+    g_rotationQuaternion = accelMagQuaternion;
+    break;
+  }
+}
+
+float[] calculateGyroRotation(FloatHeading heading, float[] currentQuaternion)
+{
+  // Swizzle the axis so that gyro's axis match overall sensor setup.
   float gyroX = heading.m_gyroY;
   float gyroY = heading.m_gyroZ;
   float gyroZ = heading.m_gyroX;
@@ -337,53 +284,11 @@ void serialEvent(Serial port)
                                        gyroZ,  gyroY, -gyroX, 1.0f);
   updateGyroStats(gyroMatrix);
   
-  float[] updatedQuaternion = new float[4];
-  gyroMatrix.mult(g_rotationQuaternion, updatedQuaternion);
-  g_rotationQuaternion = updatedQuaternion;
-  float magnitude = sqrt(g_rotationQuaternion[0] * g_rotationQuaternion[0] +
-                         g_rotationQuaternion[1] * g_rotationQuaternion[1] +  
-                         g_rotationQuaternion[2] * g_rotationQuaternion[2] +  
-                         g_rotationQuaternion[3] * g_rotationQuaternion[3]);
-  g_rotationQuaternion[0] /= magnitude;
-  g_rotationQuaternion[1] /= magnitude;
-  g_rotationQuaternion[2] /= magnitude;
-  g_rotationQuaternion[3] /= magnitude;
-  
-  // Integrate gryo readings (after removing 0.5 factor used in derivative calculation.)
-  // Dump if user has made such a request.
-  g_currentRotation[0] += gyroX / 0.5f;
-  g_currentRotation[1] += gyroY / 0.5f;
-  g_currentRotation[2] += gyroZ / 0.5f;
-  if (g_dumpRotations)
-  {
-    println(degrees(g_currentRotation[0]) + "," + degrees(g_currentRotation[1]) + "," + degrees(g_currentRotation[2]));
-  }
-}
+  float[] resultQuaternion = new float[4];
+  gyroMatrix.mult(currentQuaternion, resultQuaternion);
+  quaternionNormalize(resultQuaternion);
 
-void updateAccelMagStats(float[] q)
-{
-  // Accumulate these results.
-  quaternionAdd(g_accelMagSum, q);
-  quaternionAddSquared(g_accelMagSquaredSum, q);
-  g_accelMagSampleCount++;
-  
-  // Calculate mean/variance once enough samples have been accumualted.
-  if (g_accelMagSampleCount < g_accelMagSamplesToCount)
-    return;
-  double[] mean = new double[4];
-  double[] variance = new double[4];
-  quaternionStats(mean, variance, g_accelMagSum, g_accelMagSquaredSum, g_accelMagSampleCount);
-  println("Accel/Mag Quaternion Stats");
-  print("    mean:"); quaternionPrint(mean);
-  print("variance:"); quaternionPrint(variance);
-  
-  // Prepare to start accumulate next chunk of stats.
-  for (int i = 0 ; i < g_accelMagSum.length ; i++)
-  {
-    g_accelMagSum[i] = 0.0;
-    g_accelMagSquaredSum[i] = 0.0;
-  }
-  g_accelMagSampleCount = 0;
+  return resultQuaternion;
 }
 
 void updateGyroStats(PMatrix3D orig)
@@ -410,7 +315,7 @@ void updateGyroStats(PMatrix3D orig)
   print("    mean:"); quaternionPrint(mean);
   print("variance:"); quaternionPrint(variance);
   
-  // Prepare to start accumulate next chunk of stats.
+  // Prepare to start accumulating next chunk of stats.
   for (int i = 0 ; i < g_gyroSum.length ; i++)
   {
     g_gyroSum[i] = 0.0;
@@ -419,46 +324,56 @@ void updateGyroStats(PMatrix3D orig)
   g_gyroSampleCount = 0;
 }
 
-void quaternionNormalize(float[] q)
+float[] calculateAccelMagRotation(FloatHeading heading)
 {
-  float magnitude = sqrt(q[0] * q[0] +
-                         q[1] * q[1] +  
-                         q[2] * q[2] +  
-                         q[3] * q[3]);
-  q[0] /= magnitude;
-  q[1] /= magnitude;
-  q[2] /= magnitude;
-  q[3] /= magnitude;
+  // Setup gravity (down) and north vectors.
+  // NOTE: The fields are swizzled to make the axis on the device match the axis on the screen.
+  PVector down = new PVector(heading.m_accelY, heading.m_accelZ, heading.m_accelX);
+  PVector north = new PVector(-heading.m_magX, heading.m_magZ, heading.m_magY);
+
+  // Project the north vector onto the earth surface plane.
+  down.normalize();
+  north.sub(PVector.mult(down, north.dot(down)));
+  north.normalize();
+
+  // To create a rotation matrix, we need all 3 basis vectors so calculate the vector which
+  // is orthogonal to both the down and north vectors (ie. the normalized cross product).
+  PVector west = north.cross(down);
+  west.normalize();
+  PMatrix3D rotationMatrix = new PMatrix3D(north.x, north.y, north.z, 0.0,
+                                           down.x, down.y, down.z, 0.0,
+                                           west.x, west.y, west.z, 0.0,
+                                           0.0, 0.0, 0.0, 1.0);
+  float[] rotationQuaternion = matrixToQuaternion(rotationMatrix);
+  updateAccelMagStats(rotationQuaternion);
+  
+  return rotationQuaternion;
 }
 
-void quaternionAdd(double[] q1, float[] q2)
+void updateAccelMagStats(float[] q)
 {
-  q1[0] += (double)q2[0];
-  q1[1] += (double)q2[1];
-  q1[2] += (double)q2[2];
-  q1[3] += (double)q2[3];
-}
-
-void quaternionAddSquared(double[] q1, float[] q2)
-{
-  q1[0] += (double)q2[0] * (double)q2[0];
-  q1[1] += (double)q2[1] * (double)q2[1];
-  q1[2] += (double)q2[2] * (double)q2[2];
-  q1[3] += (double)q2[3] * (double)q2[3];
-}
-
-void quaternionStats(double[] mean, double[] variance, double[] sum, double[] sumSquared, int samples)
-{
-  for (int i = 0 ; i < mean.length ; i++)
+  // Accumulate these results.
+  quaternionAdd(g_accelMagSum, q);
+  quaternionAddSquared(g_accelMagSquaredSum, q);
+  g_accelMagSampleCount++;
+  
+  // Calculate mean/variance once enough samples have been accumualted.
+  if (g_accelMagSampleCount < g_accelMagSamplesToCount)
+    return;
+  double[] mean = new double[4];
+  double[] variance = new double[4];
+  quaternionStats(mean, variance, g_accelMagSum, g_accelMagSquaredSum, g_accelMagSampleCount);
+  println("Accel/Mag Quaternion Stats");
+  print("    mean:"); quaternionPrint(mean);
+  print("variance:"); quaternionPrint(variance);
+  
+  // Prepare to start accumulating next chunk of stats.
+  for (int i = 0 ; i < g_accelMagSum.length ; i++)
   {
-    mean[i] = sum[i] / samples;
-    variance[i] = (sumSquared[i] - ((sum[i] * sum[i]) / samples)) / (samples - 1);
+    g_accelMagSum[i] = 0.0;
+    g_accelMagSquaredSum[i] = 0.0;
   }
-}
-
-void quaternionPrint(double[] m)
-{
-  println(m[0] + ", " + m[1] + ", " + m[2] + ", " + m[3]);
+  g_accelMagSampleCount = 0;
 }
 
 void keyPressed()
@@ -470,11 +385,15 @@ void keyPressed()
   case ' ':
     g_zeroRotation = true;
     break;
-  case 'z':
-    g_dumpRotations = true;
-    g_currentRotation[0] = 0.0f;
-    g_currentRotation[1] = 0.0f;
-    g_currentRotation[2] = 0.0f;
+  case 'g':
+    g_rotationSource = GYRO;
+    break;
+  case 'a':
+    g_rotationSource = ACCEL_MAG;
+    break;
+  case 'k':
+    g_rotationSource = KALMAN;
+    break;
   }
 }
 
