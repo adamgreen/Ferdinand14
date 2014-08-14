@@ -21,6 +21,7 @@ final int KALMAN = 2;
 HeadingSensorCalibration g_calibration;
 HeadingSensor            g_headingSensor;
 boolean                  g_zeroRotation = false;
+float                    g_cameraAngle = 0.0f;
 int                      g_samples = 0;
 int                      g_lastSampleCount;
 float[]                  g_rotationQuaternion = {1.0f, 0.0f, 0.0f, 0.0f};
@@ -88,7 +89,8 @@ void draw()
   if (g_zeroRotation)
   {
     PVector cam = new PVector(0, (height / 2.0) / tan(radians(30.0)));
-    cam.rotate(headingAngle);
+    g_cameraAngle = headingAngle;
+    cam.rotate(g_cameraAngle);
     camera(cam.x + width/2.0, height/2.0, cam.y, width/2.0, height/2.0, 0, 0, 1, 0);
     g_zeroRotation = false;
   }
@@ -101,17 +103,24 @@ void draw()
     drawBox();
   popMatrix();
 
-  // UNDONE: How to handle the fact that camera can be moved around with the space bar.  
   // Rotate the compass image accordingly.
   pushMatrix();
+    rotate2DPlaneToFaceCamera();
     translate(width - 150, height - 150, 0);
     drawCompass(headingAngle);
   popMatrix();
   
-  // UNDONE: How to handle the fact that the camera can be around with the space bar?
   // Display rotation source to user.
   fill(255);
+  rotate2DPlaneToFaceCamera();
   text(getRotationSourceString(), 10, g_fontHeight);
+}
+
+void rotate2DPlaneToFaceCamera()
+{
+  translate(width/2.0f, height/2.0f, 0.0f);
+  rotateY(-g_cameraAngle);
+  translate(-width/2.0f, -height/2.0f, 0.0f);
 }
 
 void drawBox()
