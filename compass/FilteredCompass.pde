@@ -101,6 +101,12 @@ class FilteredCompass
     // Fetch the accelerometer/magnetometer measurements as a quaternion.
     float[] z = calculateAccelMagRotation(heading);
     
+    // Flip the quaternion (q == -q for quaternions) if the angle is obtuse.
+    if (quaternionDot(z, xPredicted) < 0.0f)
+    {
+      quaternionFlip(z);
+    }
+    
     // Calculate the Kalman estimates.
     // Again, simplified a bit since H is the identity matrix.
     temp = K.get();
