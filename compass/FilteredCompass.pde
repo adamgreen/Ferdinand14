@@ -10,7 +10,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
-class FilteredCompass
+import processing.serial.*;
+
+public class FilteredCompass extends PApplet
 {
   public FilteredCompass()
   {
@@ -25,11 +27,26 @@ class FilteredCompass
     m_calibration.gyroCoefficientB = configFile.getFloatVector("compass.gyro.coefficient.B");
     m_calibration.gyroScale = configFile.getFloatVector("compass.gyro.scale");
     
-    Heading filterWidths = new Heading(16, 16, 16, 16, 16, 16, 0, 0, 0, 0);
-    m_headingSensor = new HeadingSensor(configFile.getString("compass.port"), m_calibration, filterWidths);
+    m_port = new Serial(this, configFile.getString("compass.port"), 230400);
+    m_headingSensor = new HeadingSensor(m_port, m_calibration);
   }
 
   public float getHeading()
+  {
+    // Calculate the yaw angle (rotation about y axis) from the rotation quaternion.
+    PMatrix3D rotationMatrix = quaternionToMatrix(m_rotationQuaternion);
+    PVector north = new PVector(rotationMatrix.m00, rotationMatrix.m01, rotationMatrix.m02);
+    float headingAngle = atan2(-north.z, north.x);
+    return headingAngle;
+  }
+
+  public void serialEvent(Serial port)
+  {
+    m_headingSensor.update();
+    updateHeading();
+  }
+
+  protected void updateHeading()
   {
     if (!m_isInitialized)
     {
@@ -39,14 +56,8 @@ class FilteredCompass
     
     // Calculate rotation using Kalman filter.
     m_rotationQuaternion = calculateKalmanRotation(m_headingSensor.getCurrent(), m_rotationQuaternion);
-
-    // Calculate the yaw angle (rotation about y axis) from the rotation quaternion.
-    PMatrix3D rotationMatrix = quaternionToMatrix(m_rotationQuaternion);
-    PVector north = new PVector(rotationMatrix.m00, rotationMatrix.m01, rotationMatrix.m02);
-    float headingAngle = atan2(-north.z, north.x);
-    return headingAngle;
   }
-
+  
   protected float[] calculateKalmanRotation(FloatHeading heading, float[] currentQuaternion)
   {
     // System model covariance matrices which don't change.
@@ -190,6 +201,7 @@ class FilteredCompass
   }
   
   protected HeadingSensorCalibration m_calibration;
+  protected Serial                   m_port;
   protected HeadingSensor            m_headingSensor;
   protected boolean                  m_isInitialized = false;
   protected float[]                  m_rotationQuaternion = {1.0f, 0.0f, 0.0f, 0.0f};

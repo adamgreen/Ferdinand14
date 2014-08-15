@@ -10,8 +10,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 */
-import processing.serial.*;
-
 class HeadingSensorCalibration
 {
   public IntVector   accelMin;
@@ -23,16 +21,15 @@ class HeadingSensorCalibration
   public FloatVector gyroScale;
 };
 
-public class HeadingSensor extends PApplet
+class HeadingSensor
 {
-  HeadingSensor(String portName, HeadingSensorCalibration calibration, Heading sampleCounts)
+  HeadingSensor(Serial port, HeadingSensorCalibration calibration)
   {
     m_calibration = calibration;
     calibrate(calibration);
     
     // Clear out any data that we might be in the middle of.
-    m_port = new Serial(this, portName, 230400);
-    m_port.clear();
+    m_port = port;
     String dummy = m_port.readStringUntil('\n');
     m_port.bufferUntil('\n');
   }
@@ -59,11 +56,6 @@ public class HeadingSensor extends PApplet
                                1.0f,
                                1.0f,
                                1.0f);
-  }
-
-  void serialEvent(Serial port)
-  {
-    update();
   }
   
   boolean update()
