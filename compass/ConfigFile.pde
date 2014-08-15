@@ -17,7 +17,7 @@ class ConfigFile
     m_lines = loadStrings(configFilename);
   }
   
-  public String param(String paramName)
+  public String getString(String paramName)
   {
     String paramValue = findParam(paramName);
     if (paramValue != null)
@@ -25,7 +25,7 @@ class ConfigFile
     return null;
   }
   
-  public IntVector vectorParam(String paramName)
+  public IntVector getIntVector(String paramName)
   {
     String paramValue = findParam(paramName);
     if (paramValue != null)
@@ -34,6 +34,19 @@ class ConfigFile
       if (fields.length < 3)
         return null;
       return new IntVector(int(fields[0]), int(fields[1]), int(fields[2]));
+    }
+    return null;
+  }
+  
+  public FloatVector getFloatVector(String paramName)
+  {
+    String paramValue = findParam(paramName);
+    if (paramValue != null)
+    {
+      String fields[] = splitTokens(paramValue, ", ");
+      if (fields.length < 3)
+        return null;
+      return new FloatVector(float(fields[0]), float(fields[1]), float(fields[2]));
     }
     return null;
   }
@@ -50,5 +63,49 @@ class ConfigFile
   }
   
   String m_lines[];
+};
+
+
+class FloatVector
+{
+  public FloatVector(float x, float y, float z)
+  {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+  
+  public FloatVector()
+  {
+    this.x = 0.0f;
+    this.y = 0.0f;
+    this.z = 0.0f;
+  }
+  
+  public float x;
+  public float y;
+  public float z;
+};
+
+
+class IntVector
+{
+  public IntVector(int x, int y, int z)
+  {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+  
+  public IntVector()
+  {
+    this.x = 0;
+    this.y = 0;
+    this.z = 0;
+  }
+  
+  public int x;
+  public int y;
+  public int z;
 };
 

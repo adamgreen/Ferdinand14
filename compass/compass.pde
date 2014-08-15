@@ -89,9 +89,6 @@ void keyPressed()
   
   switch(lowerKey)
   {
-  case 's':
-    g_compass.setSmoothed(!g_compass.isSmoothed()); 
-    break;
   }
 }
 
