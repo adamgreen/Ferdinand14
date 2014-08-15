@@ -28,6 +28,12 @@ float[]                  g_rotationQuaternion = {1.0f, 0.0f, 0.0f, 0.0f};
 int                      g_rotationSource = ACCEL_MAG;
 int                      g_fontHeight;
 PFont                    g_font;
+final float              g_initVariance = 1.0E-4;
+PMatrix3D                g_kalmanP = new PMatrix3D(g_initVariance,           0.0f,           0.0f,           0.0f,
+                                                             0.0f, g_initVariance,           0.0f,           0.0f,
+                                                             0.0f,           0.0f, g_initVariance,           0.0f, 
+                                                             0.0f,           0.0f,           0.0f, g_initVariance);
+final float             g_gyroThreshold = 4.0f * (1.0f / 14.375f);
 
 // Used for calculating statistics (variance in particular) of sensors effects on
 // their corresponding quaternions.
@@ -263,6 +269,9 @@ void serialEvent(Serial port)
   // Calculate rotation based on accelerometer and magnetometer.
   float[] accelMagQuaternion = calculateAccelMagRotation(heading);
   
+  // Calculate rotation using Kalman filter.
+  float[] kalmanQuaternion = calculateKalmanRotation(heading, g_rotationQuaternion);
+
   // Select which rotation quaternion to actually use for rendering.
   switch (g_rotationSource)
   {
@@ -271,6 +280,9 @@ void serialEvent(Serial port)
     break;
   case ACCEL_MAG:
     g_rotationQuaternion = accelMagQuaternion;
+    break;
+  case KALMAN:
+    g_rotationQuaternion = kalmanQuaternion;
     break;
   }
 }
@@ -281,6 +293,14 @@ float[] calculateGyroRotation(FloatHeading heading, float[] currentQuaternion)
   float gyroX = heading.m_gyroY;
   float gyroY = heading.m_gyroZ;
   float gyroZ = heading.m_gyroX;
+
+  // Ignore very small rotations as they are most likely just noise.
+  if (abs(gyroX) < g_gyroThreshold)
+    gyroX = 0;
+  if (abs(gyroY) < g_gyroThreshold)
+    gyroY = 0;
+  if (abs(gyroZ) < g_gyroThreshold)
+    gyroZ = 0;
 
   // Apply gyro rates (derivatives) to quaternion.
   float timeScale = (1.0f / 100.0f) * 0.5f;
@@ -310,8 +330,8 @@ void updateGyroStats(PMatrix3D orig)
   m.mult(quaternion, updatedQuaternion);
   
   // Accumulate these results.
-  quaternionAdd(g_gyroSum, updatedQuaternion);
-  quaternionAddSquared(g_gyroSquaredSum, updatedQuaternion);
+  quaternionDoubleAdd(g_gyroSum, updatedQuaternion);
+  quaternionDoubleAddSquared(g_gyroSquaredSum, updatedQuaternion);
   g_gyroSampleCount++;
   
   // Calculate mean/variance once enough samples have been accumualted.
@@ -362,8 +382,8 @@ float[] calculateAccelMagRotation(FloatHeading heading)
 void updateAccelMagStats(float[] q)
 {
   // Accumulate these results.
-  quaternionAdd(g_accelMagSum, q);
-  quaternionAddSquared(g_accelMagSquaredSum, q);
+  quaternionDoubleAdd(g_accelMagSum, q);
+  quaternionDoubleAddSquared(g_accelMagSquaredSum, q);
   g_accelMagSampleCount++;
   
   // Calculate mean/variance once enough samples have been accumualted.
@@ -385,6 +405,117 @@ void updateAccelMagStats(float[] q)
   g_accelMagSampleCount = 0;
 }
 
+float[] calculateKalmanRotation(FloatHeading heading, float[] currentQuaternion)
+{
+  // System model covariance matrices which don't change.
+  final float gyroVariance = 6.5E-11;
+  final float accelMagVariance = 1.0E-5;
+  final PMatrix3D Q = new PMatrix3D(gyroVariance,         0.0f,         0.0f,         0.0f,
+                                            0.0f, gyroVariance,         0.0f,         0.0f,
+                                            0.0f,         0.0f, gyroVariance,         0.0f,
+                                            0.0f,         0.0f,         0.0f, gyroVariance);
+  final PMatrix3D R = new PMatrix3D(accelMagVariance,             0.0f,             0.0f,             0.0f,
+                                                0.0f, accelMagVariance,             0.0f,             0.0f,
+                                                0.0f,             0.0f, accelMagVariance,             0.0f,
+                                                0.0f,             0.0f,             0.0f, accelMagVariance);
+                                          
+  // Swizzle the axis so that gyro's axis match overall sensor setup.
+  float gyroX = heading.m_gyroY;
+  float gyroY = heading.m_gyroZ;
+  float gyroZ = heading.m_gyroX;
+
+  // Construct matrix which applies gyro rates (derivatives) to quaternion.
+  // This will be the A matrix for the system model.
+  final float timeScale = (1.0f / 100.0f);
+  final float scaleFactor = timeScale * 0.5f;
+  gyroX *= scaleFactor;
+  gyroY *= scaleFactor;
+  gyroZ *= scaleFactor;
+  PMatrix3D A = new PMatrix3D( 1.0f, -gyroX, -gyroY, -gyroZ,
+                               gyroX,   1.0f,  gyroZ, -gyroY,
+                               gyroY, -gyroZ,   1.0f,  gyroX,
+                               gyroZ,  gyroY, -gyroX, 1.0f);
+  
+  // Calculate Kalman prediction for x and error.
+  float[] xPredicted = new float[4];
+  A.mult(currentQuaternion, xPredicted);
+  quaternionNormalize(xPredicted);
+  
+  PMatrix3D PPredicted = A.get();
+  PMatrix3D ATranspose = A.get();
+  ATranspose.transpose();
+  PPredicted.apply(g_kalmanP);
+  PPredicted.apply(ATranspose);
+  matrixAdd(PPredicted, Q);
+  
+  // Calculate the Kalman gain.
+  // Simplified a bit since the H matrix is the identity matrix.
+  PMatrix3D K = PPredicted.get();
+  PMatrix3D temp = PPredicted.get();
+  matrixAdd(temp, R);
+  temp.invert();
+  K.apply(temp);
+
+  // Fetch the accelerometer/magnetometer measurements as a quaternion.
+  float[] z = calculateAccelMagRotation(heading);
+  
+  // Calculate the Kalman estimates.
+  // Again, simplified a bit since H is the identity matrix.
+  temp = K.get();
+  float[] correction = new float[4];
+  quaternionSubtract(z, xPredicted);
+  temp.mult(z, correction);
+  quaternionAdd(xPredicted, correction);
+  float[] x = xPredicted;
+  
+  temp = K.get();
+  temp.apply(PPredicted);
+  matrixSubtract(PPredicted, temp);
+  g_kalmanP = PPredicted;
+  
+  return x;
+}
+
+void matrixAdd(PMatrix3D m1, PMatrix3D m2)
+{
+  m1.m00 += m2.m00;
+  m1.m01 += m2.m01;
+  m1.m02 += m2.m02;
+  m1.m03 += m2.m03;
+  m1.m10 += m2.m10;
+  m1.m11 += m2.m11;
+  m1.m12 += m2.m12;
+  m1.m13 += m2.m23;
+  m1.m20 += m2.m20;
+  m1.m21 += m2.m21;
+  m1.m22 += m2.m22;
+  m1.m23 += m2.m23;
+  m1.m30 += m2.m30;
+  m1.m31 += m2.m31;
+  m1.m32 += m2.m32;
+  m1.m33 += m2.m33;
+}
+
+void matrixSubtract(PMatrix3D m1, PMatrix3D m2)
+{
+  m1.m00 -= m2.m00;
+  m1.m01 -= m2.m01;
+  m1.m02 -= m2.m02;
+  m1.m03 -= m2.m03;
+  m1.m10 -= m2.m10;
+  m1.m11 -= m2.m11;
+  m1.m12 -= m2.m12;
+  m1.m13 -= m2.m23;
+  m1.m20 -= m2.m20;
+  m1.m21 -= m2.m21;
+  m1.m22 -= m2.m22;
+  m1.m23 -= m2.m23;
+  m1.m30 -= m2.m30;
+  m1.m31 -= m2.m31;
+  m1.m32 -= m2.m32;
+  m1.m33 -= m2.m33;
+}
+
 void keyPressed()
 {
   char lowerKey = Character.toLowerCase(key);
@@ -402,6 +533,10 @@ void keyPressed()
     break;
   case 'k':
     g_rotationSource = KALMAN;
+    g_kalmanP = new PMatrix3D(g_initVariance,           0.0f,           0.0f,           0.0f,
+                                        0.0f, g_initVariance,           0.0f,           0.0f,
+                                        0.0f,           0.0f, g_initVariance,           0.0f, 
+                                        0.0f,           0.0f,           0.0f, g_initVariance);
     break;
   }
 }

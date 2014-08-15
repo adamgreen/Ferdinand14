@@ -48,7 +48,23 @@ void quaternionNormalize(float[] q)
   q[3] /= magnitude;
 }
 
-void quaternionAdd(double[] q1, float[] q2)
+void quaternionAdd(float[] q1, float[] q2)
+{
+  q1[0] += q2[0];
+  q1[1] += q2[1];
+  q1[2] += q2[2];
+  q1[3] += q2[3];
+}
+
+void quaternionSubtract(float[] q1, float[] q2)
+{
+  q1[0] -= q2[0];
+  q1[1] -= q2[1];
+  q1[2] -= q2[2];
+  q1[3] -= q2[3];
+}
+
+void quaternionDoubleAdd(double[] q1, float[] q2)
 {
   q1[0] += (double)q2[0];
   q1[1] += (double)q2[1];
@@ -56,7 +72,7 @@ void quaternionAdd(double[] q1, float[] q2)
   q1[3] += (double)q2[3];
 }
 
-void quaternionAddSquared(double[] q1, float[] q2)
+void quaternionDoubleAddSquared(double[] q1, float[] q2)
 {
   q1[0] += (double)q2[0] * (double)q2[0];
   q1[1] += (double)q2[1] * (double)q2[1];
