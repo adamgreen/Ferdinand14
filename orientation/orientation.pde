@@ -294,6 +294,7 @@ float[] calculateGyroRotation(FloatHeading heading, float[] currentQuaternion)
   float gyroY = heading.m_gyroZ;
   float gyroZ = heading.m_gyroX;
 
+/* Demonstrates gyro drift better without this fix-up being applied.
   // Ignore very small rotations as they are most likely just noise.
   if (abs(gyroX) < g_gyroThreshold)
     gyroX = 0;
@@ -301,6 +302,7 @@ float[] calculateGyroRotation(FloatHeading heading, float[] currentQuaternion)
     gyroY = 0;
   if (abs(gyroZ) < g_gyroThreshold)
     gyroZ = 0;
+*/
 
   // Apply gyro rates (derivatives) to quaternion.
   float timeScale = (1.0f / 100.0f) * 0.5f;
