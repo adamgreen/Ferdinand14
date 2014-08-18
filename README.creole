@@ -9,6 +9,30 @@ Tracking of the work I am doing for a robot to compete in the
 [[https://github.com/adamgreen/Ferdinand14#sparkfun-9dof-sensor-stick-modifications | Sparkfun 9DoF Sensor Stick Modifications]]\\
 
 
+
+==August 17, 2014
+===It's Been Awhile!
+It has been over a month since I last logged any Robo-Magellan progress.  I spent a few weeks working on some other
+projects when I was away from home without access to the orientation sensor.  However, I did make some progress on this
+project and I will cover the highlights in the next few posts:
+
+===Lighter MINDS-i Chassis from Carol
+{{http://www.jigsawrenaissance.org/wp-content/uploads/2014/07/IMG_1499.jpg}}
+
+The above photo was taken by Michael Park at [[http://www.jigsawrenaissance.org | Jigsaw Renaissance]] when Xandon and I
+met up with Carol to checkout the lighter platform that she had so kindly built us using the
+[[http://mindsirobotics.com | MINDS-i Robotics]] system.  It is a very cool platform!!  Xandon has been doing some great
+work over the last month to migrate to the new chassis.  In the above photo you can see the RPLIDAR mounted on the front
+of the new chassis.
+
+The following photo was taken at the most recent SRS meeting on August 16th while Xandon was integrating and testing my
+latest orientation sensor code.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140817-01.jpg}}
+
+
+
+
 ==July 7, 2014
 ===RoboPeak RPLIDAR Sample in Processing on OS X
 {{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140706-01.png}}
