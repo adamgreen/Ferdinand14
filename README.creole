@@ -7,6 +7,7 @@ Tracking of the work I am doing for a robot to compete in the
 ===Points of Interest
 [[https://github.com/adamgreen/Ferdinand14#clone-this-repo-and-its-submodules | How to Clone github Repository]]\\
 [[https://github.com/adamgreen/Ferdinand14#sparkfun-9dof-sensor-stick-modifications | Sparkfun 9DoF Sensor Stick Modifications]]\\
+[[https://github.com/adamgreen/Ferdinand14#sensor-calibration | How to Calibrate the Sparkun 9DoF Sensor Stick]]\\
 
 
 
