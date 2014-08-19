@@ -31,6 +31,11 @@ public class FilteredCompass extends PApplet
     m_headingSensor = new HeadingSensor(m_port, m_calibration);
   }
 
+  public PMatrix3D getOrientation()
+  {
+    return quaternionToMatrix(m_rotationQuaternion);
+  }
+
   public float getHeading()
   {
     // Calculate the yaw angle (rotation about y axis) from the rotation quaternion.
@@ -42,6 +47,8 @@ public class FilteredCompass extends PApplet
 
   public void serialEvent(Serial port)
   {
+    if (m_headingSensor == null)
+      return;
     m_headingSensor.update();
     updateHeading();
   }
