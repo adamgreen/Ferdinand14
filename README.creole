@@ -10,6 +10,80 @@ Tracking of the work I am doing for a robot to compete in the
 
 
 
+==August 18, 2014
+===Orientation Sensor Robustness Issues
+While the orientation sensor that I had given to Xandon was working well in static situations, it proved to not be very
+effective in real world Robo-Magellan scenarios where the robot would be moving and experiencing quite a bit of
+vibration.  The compass heading would be very stable when the robot was stationary but as soon as it started to move the
+heading could deflect randomly from the true heading, as much as 180 degrees.  The simple low-pass filter on the
+accelerometer and magnetometer measurements alone just wasn't enough to obtain the tilt-compensated compass readings
+needed for Robo-Magellan navigation.  We needed something more!
+
+===Gyro Time!
+It was at this point that I started looking at the gyro sensors on the Sparkfun 9DoF sensor stick.  I saw a great deal
+of drift in the gyro measurements while the sensor was sitting still, undergoing no rotation.  Since the ITG-3200 gyro
+was the only sensor on the Sparkfun board which also contained a temperature sensor, I decided to write some code which
+would log this temperature along with the drift error for each axis.  Here is a graph of that logged data:
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140818-01.png}}
+
+The raw timing measurements from the sensor are used for the horizontal axis and the raw measurements from each of the
+gyro axis (x, y, and z) are used for the vertical axis.  The sensor was initially placed in the freezer for an hour to
+cool down the sensor and then moved to a location at room temperature, allowing it to warm up while the logging was
+taking place.  The sensor is stationary while this data was logged so the gyro readings indicate the amount of drift
+error.  The three gyro rotation measurements are in the raw units returned from the sensor
+(~14.375 [[http://en.wikipedia.org/wiki/Least_significant_bit | lsb]] / degrees per second.)  The temperature is in raw
+units as well where there are ~280 lsb / C and 35C has a raw value of ~13200.  The rightmost field in the table shows
+the approximate temperature in degrees C [(rawTemp − −13200) ÷ 280 + 35].
+
+It is pretty clear from this graph that there is a linear relationship between the gyro drift and the die temperature.
+The graph even shows the equation for the first order trend line.  I was able to estimate the drift error by using these
+equation coefficients.  Correcting the gyro measurements by subtracting away the estimated drift error resulted in an
+average drift error of only ~0.5 [[http://en.wikipedia.org/wiki/Least_significant_bit | lsb]].  The code for performing
+this correction can be seen
+[[https://github.com/adamgreen/Ferdinand14/blob/ea12da1ffa2704566abf9bc0a4ce6aa9fd9c0d07/compass/HeadingSensor.pde#L110 | here]].
+I will more thoroughly discuss the process I use for calibrating the sensors in a future post.
+
+===Kalman Filtering - Finally!
+Many on the [[http://www.seattlerobotics.org/contact.php#Monday | SRS IRC channel]] will tell you that I have been
+talking about solving all of my orientation sensors issues via the magic of Kalman Filters for months now.  I would keep
+suggesting that I would start implementing it tomorrow but once tomorrow came I would be working on another sensor
+related issue instead.  I just kept pushing it out.  This all changed on
+[[https://github.com/adamgreen/Ferdinand14/commit/6cc50a42c0ccb4cecc1e1adc8dfc5523cf58649a#diff-d41d8cd98f00b204e9800998ecf8427e | August 14th]]
+
+{{{
+commit 6cc50a42c0ccb4cecc1e1adc8dfc5523cf58649a
+Author: Adam Green <adamgr@foo.bar>
+Date:   Thu Aug 14 18:58:41 2014 -0700
+
+    Add Kalman filter to gyro Processing sample
+    
+    This is the initial version of the Kalman filter for fusing the
+    accelerometer, magnetometer, and gyro sensor measurements together to
+    obtain a filtered orientation result.
+}}}
+
+In the end, it didn't take me very long to actually implement this code.  It was heavily influenced by
+**Chapter 13. Attitude reference system** from the
+[[http://www.amazon.com/Kalman-Filter-Beginners-MATLAB-Examples/dp/1463648359 | Kalman Filter for Beginners by Phil Kim]]
+book.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140619-01.jpg}}
+
+The Processing code that I am currently using for the Kalman filter can be found in the **calculateKalmanRotation()**
+method
+[[https://github.com/adamgreen/Ferdinand14/blob/14badf0cbc621c9c615c149439808be7e23180c0/orientation/orientation.pde#L410 | here]].
+
+How well did the Kalman filter work?  On August 16th, at the SRS meeting, Xandon integrated the new Kalman version of my
+code into his Warp project.  We then tested it outside on the grass at Renton Technical College.  It actually performed
+much better than I expected!  The vibration of driving across the lawn and the swaying motion in the mast of the robot
+had little influence on the compass heading returned from the orientation sensor.  We could drive for a while on the
+rough terrain and then stop to observe the impact on the orientation sensor.  If it had accumulated error then it would
+have slowly started to correct itself once stopped but that never happened as there was no error for which it needed to
+correct.
+
+
+
 ==August 17, 2014
 ===It's Been Awhile!
 It has been over a month since I last logged any Robo-Magellan progress.  I spent a few weeks working on some other
