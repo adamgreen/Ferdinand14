@@ -5,8 +5,147 @@ Tracking of the work I am doing for a robot to compete in the
 [[http://www.robothon.org/robothon/index.php | Seattle Center on September 20, 2014]].
 
 ===Points of Interest
-[[https://github.com/adamgreen/Ferdinand14#clone-this-repo-and-its-submodules | How to Clone]]\\
+[[https://github.com/adamgreen/Ferdinand14#clone-this-repo-and-its-submodules | How to Clone github Repository]]\\
 [[https://github.com/adamgreen/Ferdinand14#sparkfun-9dof-sensor-stick-modifications | Sparkfun 9DoF Sensor Stick Modifications]]\\
+
+
+
+==August 19, 2014
+===Sensor Calibration
+In the past I have been kind of random with how I have determined the calibration settings for each of the sensors.  To
+make things easier on myself in the future, I pulled together all of the code I use for calibration into a single
+application.  You can find that application [[https://github.com/adamgreen/Ferdinand14/tree/master/calibration | here]].
+An example calibration file that I have created based on this process can be found
+[[https://github.com/adamgreen/Ferdinand14/blob/18f657219cb0b35479afa5fde52c5311ebccfe98/orientation/adamgreen.config | here]].
+
+===Magnetometer Calibration
+This is one of the easiest and trickiest sensors to calibrate.  To calibrate for hard iron distortions we need to obtain
+the maximum and minimum values that the earth's magnetic field can generate in each axis of the magnetometer.  The
+calibration application can easily track the maximum / minimum readings and display them to the user.  The user just
+needs to manually rotate the orientation sensor so that it encounters each of the maximum/minimum readings.  I do this
+by orienting the device so that each major axis is pointing down and then slowly spiraling it in an ever increasing
+diameter.  The trick is that the hard iron distortion is dependent on the ferrous material located in the immediate
+vicinity of the magnetometer.  That means it should be calibrated when it is actually mounted to the robot so it is the
+whole robot that needs to be rotated during calibration.  The rest of the sensors can be calibrated when detached from
+the robot.  Another trick to keep in mind is that the earth's magnetic field isn't parallel to the surface of the earth
+but depends on your latitude.  Here in Seattle the north vector points downwards with an inclination angle of ~~69
+degrees.  That is the reason I use a spiral motion to find the minimum/maximum readings.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140819-01.png}} 
+
+The above screen capture shows the output of the calibration program after I rotated one of my sensors through all of
+the maximum and minimum orientations.  Based on this data, I would place these magnetometer settings in my calibration
+file:
+{{{
+compass.magnetometer.min=-638,-716,-574
+compass.magnetometer.max=622,530,575
+}}}
+
+===Accelerometer Calibration
+To calibrate the accelerometers we need to obtain the maximum and minimum values that the earth's gravity can generate
+in each axis.  The calibration application shows the current accelerometer readings for each axis.  The application only
+shows the current readings since the minimum and maximum readings would be tainted from accelerations other than gravity
+as the device is moved.  The user can find the minimum and maximum values for each axis by resting the sensor on each of
+its sides and taking the readings while the device is motionless.  You can try placing small shims around the edge of
+the device while it is laying on its side to make sure that a larger reading can't be found while making sure that the
+device is level.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140819-01.png}} 
+
+The above screen capture shows the output of the calibration program as the orientation sensor lies flat on my desk.  It
+shows that the z accelerometer experiences a maximum reading of 226 when placed in this orientation.  Based on this
+data, I know to set the z field of the compass.accelerometer.max calibration value to 226:
+{{{
+compass.accelerometer.min=-243,-258,-284
+compass.accelerometer.max=268,254,226
+}}}
+Laying the device on each of the device's other sides will find the rest of the accelerometer maximum and minimum
+calibration values.
+
+===Gyro Calibration
+The gyro will be calibrated in two steps.  The first is to determine the relationship between the gyro sensor's
+temperature and its zero bias (drift) for each axis.  The second is to determine the scale of each axis (the number of
+[[http://en.wikipedia.org/wiki/Least_significant_bit | lsb]] / degrees per second).
+
+====Gyro Drift vs Temperature Calibration
+As I mentioned in a previous post, the gyro drift is very dependent on sensor temperature.  I start the calibration
+process by placing the sensor in the freezer for an hour or so to let it cool down.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140819-02.jpg}}
+
+After the hour of cooling, I brought the sensor out to a room temperature location, connected it to my MacBook Air, and
+started up the calibration application.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140819-03.jpg}}
+
+As soon as the calibration application starts, it creates a file called **gyro.csv**.  Each minute it logs the average
+gyro drift measurement along with the temperature.  This is an excerpt from the log file it created while one of the
+orientation sensors was allowed to warm up while also remaining motionless:
+
+{{{
+temperature,x,y,z
+...
+-17323.521666666667,9.561166666666667,12.429833333333333,-9.661166666666666
+-16635.4485,11.085,12.290166666666666,-7.805
+-16061.372166666666,12.331666666666667,12.165333333333333,-6.222
+-15552.258166666667,13.721833333333333,12.024833333333333,-4.920833333333333
+-15147.791,14.593,11.966666666666667,-3.779166666666667
+-14782.6625,15.372166666666667,11.888666666666667,-2.8346666666666667
+-14487.181166666667,16.053833333333333,11.851166666666666,-2.0185
+-14226.740833333333,16.681,11.7585,-1.3
+-13998.222333333333,17.174,11.695666666666666,-0.6775
+-13812.186333333333,17.7055,11.583333333333334,-0.14816666666666667
+-13605.280833333334,18.079833333333333,11.5405,0.3421666666666667
+-13447.805166666667,18.436666666666667,11.469333333333333,0.7943333333333333
+-13331.624666666667,18.7685,11.416,1.1536666666666666
+-13151.540833333333,19.021333333333335,11.4215,1.5311666666666666
+-13075.827666666666,19.420833333333334,11.379166666666666,1.8536666666666666
+-12920.863833333333,19.592833333333335,11.3615,2.1441666666666666
+-12828.486666666666,19.779833333333332,11.326833333333333,2.4071666666666665
+...
+}}}
+
+I then opened this **gyro.csv** up in a spreadsheet, graphed the data, and had it calculate a linear equation for a
+trend line to match the data as well as possible.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140819-04.png}}
+
+Based on these trend-line equations, I created this calibration data to match the coefficients in the chart:
+
+{{{
+# These gyro coefficients provide the linear equation (y=ax + b) which relates
+# sensor temperature to its bias (drift).
+compass.gyro.coefficient.A=0.0025,-0.0003,0.0026
+compass.gyro.coefficient.B=52.447,7.5672,35.951
+}}}
+
+//In the future I could have the calibration application calculate the linear least-squares coefficients itself and
+remove the spreadsheet step.//
+
+====Gyro Scale Calibration
+The best way to calibrate the gyro scale would be to spin the sensor around each axis at a known rotational velocity and
+take the average of the gyro readings.  I don't have a setup here to make such a measurement easy.  Instead I accumulate
+the gyro measurements while rotating the sensor 180 degrees around a particular axis.  The second line of the output
+from the calibration program shows the accumulated readings for each gyro axis.  It will be zeroed out when you press
+the **G** key.  The calibration program also dumps the most recent accumulated results for each axis to the Processing
+console before it clears the sums.
+
+My calibration process for determining the scale therefore goes something like this:
+# Press the **G** key in the calibration application to clear the gyro measurement sums.
+# I watch the gyro sums for a few seconds to make sure that they don't start accumulating readings before I even start
+  to rotate the device.  If they do then I jump back to step 1 and try again.
+# I then rotate the device 180 degrees about an axis.
+# I press the **G** key again to have the accumulated measurements logged to the Processing console.
+# Divide the logged accumulated value by 180 to determine the number of lsb / degrees per second.
+
+I do this process multiple times for each axis and take the average result.  These results are then used in the
+calibration file for this sensor:
+
+{{{
+# These scale indicates LSBs (least significant bits) per degree.  They should
+# be close to the 14.375 value from the ITG-3200 specification.
+compass.gyro.scale=14.256,14.021,14.160
+}}}
 
 
 
@@ -32,14 +171,14 @@ gyro axis (x, y, and z) are used for the vertical axis.  The sensor was initiall
 cool down the sensor and then moved to a location at room temperature, allowing it to warm up while the logging was
 taking place.  The sensor is stationary while this data was logged so the gyro readings indicate the amount of drift
 error.  The three gyro rotation measurements are in the raw units returned from the sensor
-(~14.375 [[http://en.wikipedia.org/wiki/Least_significant_bit | lsb]] / degrees per second.)  The temperature is in raw
-units as well where there are ~280 lsb / C and 35C has a raw value of ~13200.  The rightmost field in the table shows
+(~~14.375 [[http://en.wikipedia.org/wiki/Least_significant_bit | lsb]] / degrees per second.)  The temperature is in raw
+units as well where there are ~~280 lsb / C and 35C has a raw value of ~~13200.  The rightmost field in the table shows
 the approximate temperature in degrees C [(rawTemp − −13200) ÷ 280 + 35].
 
 It is pretty clear from this graph that there is a linear relationship between the gyro drift and the die temperature.
 The graph even shows the equation for the first order trend line.  I was able to estimate the drift error by using these
 equation coefficients.  Correcting the gyro measurements by subtracting away the estimated drift error resulted in an
-average drift error of only ~0.5 [[http://en.wikipedia.org/wiki/Least_significant_bit | lsb]].  The code for performing
+average drift error of only ~~0.5 [[http://en.wikipedia.org/wiki/Least_significant_bit | lsb]].  The code for performing
 this correction can be seen
 [[https://github.com/adamgreen/Ferdinand14/blob/ea12da1ffa2704566abf9bc0a4ce6aa9fd9c0d07/compass/HeadingSensor.pde#L110 | here]].
 I will more thoroughly discuss the process I use for calibrating the sensors in a future post.
