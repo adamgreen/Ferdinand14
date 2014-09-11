@@ -143,7 +143,7 @@ class BlobDetector
     int s = int(saturation(pixel));
     int b = int(brightness(pixel));
     
-    // Hue's actually wrap around.
+    // Hue's actually wrap around from 0 to 255.
     int hueDelta = abs(h - m_constraints.hue);
     if (hueDelta > 128)
       hueDelta = 256 - hueDelta;

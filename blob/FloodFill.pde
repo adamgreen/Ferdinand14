@@ -98,10 +98,25 @@ class FloodFill
       checkNeighbour(curr);
     }  
     
-    int hue = (m_minHue + m_maxHue) / 2;
+    // Hue's actually wrap around from 0 to 255.
+    int hue;
+    int hueThreshold;
+    if (m_maxHue - m_minHue > 128)
+    {
+      m_minHue += 256;
+      hue = (m_minHue + m_maxHue) / 2;
+      hueThreshold = (m_minHue - m_maxHue) / 2;
+      if (hue >= 256)
+        hue -= 256;
+    }
+    else
+    {
+      hue = (m_minHue + m_maxHue) / 2;
+      hueThreshold = (m_maxHue - m_minHue) / 2;
+    }
+    
     int saturation = (m_minSaturation + m_maxSaturation) / 2;
     int brightness = (m_minBrightness + m_maxBrightness) / 2;
-    int hueThreshold = (m_maxHue - m_minHue) / 2;
     int saturationThreshold = (m_maxSaturation - m_minSaturation) / 2;
     int brightnessThreshold = (m_maxBrightness - m_minBrightness) / 2;
     
@@ -148,6 +163,10 @@ class FloodFill
     int saturationDiff = saturation - curr.otherSaturation;
     int brightnessDiff = brightness - curr.otherBrightness;
     
+    // Hue's actually wrap around from 0 to 255.
+    if (hueDiff > 128)
+      hueDiff = 256 - hueDiff;
+
     float diffMagnitude = sqrt(hueDiff * hueDiff + saturationDiff * saturationDiff + brightnessDiff * brightnessDiff);
     if (diffMagnitude > m_threshold)
       return;
