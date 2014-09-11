@@ -42,6 +42,7 @@ Button[]        g_buttons;
 BlobDetector    g_detector;
 FloodFill       g_floodFill;
 float           g_fillThreshold = 7.5f;
+boolean         g_highlightBlobPixels = true;
 
 void setup() 
 {
@@ -229,24 +230,29 @@ protected void createButtons()
 
 protected void drawBlobHighlights()
 {
-  Blob   blob;
   PImage copy = createImage(g_video.width, g_video.height, RGB);
   copy.copy(g_video, 0, 0, g_video.width, g_video.height, 0, 0, copy.width, copy.height);
-  while (null != (blob = g_detector.getNextBlob()))
+
+  if (g_highlightBlobPixels)
   {
-    if (blob.width >= g_minBlobDimension && blob.height >= g_minBlobDimension)
+    Blob   blob;
+    while (null != (blob = g_detector.getNextBlob()))
     {
-      int src = 0;
-      for (int y = blob.minY ; y <= blob.maxY ; y++)
+      if (blob.width >= g_minBlobDimension && blob.height >= g_minBlobDimension)
       {
-        for (int x = blob.minX ; x <= blob.maxX ; x++)
+        int src = 0;
+        for (int y = blob.minY ; y <= blob.maxY ; y++)
         {
-          if (blob.pixels[src++])
-            copy.pixels[y * g_video.width + x] = color(255, 255, 0);
+          for (int x = blob.minX ; x <= blob.maxX ; x++)
+          {
+            if (blob.pixels[src++])
+              copy.pixels[y * g_video.width + x] = color(255, 255, 0);
+          }
         }
       }
     }
   }
+  
   copy.updatePixels();
   image(copy, 0, 0, copy.width, copy.height);
 }
@@ -276,6 +282,9 @@ void keyPressed()
       g_snapshot.copy(g_video, 0, 0, g_video.width, g_video.height, 0, 0, g_snapshot.width, g_snapshot.height);
       g_snapshot.loadPixels();
     }
+    break;
+  case 'h':
+    g_highlightBlobPixels = !g_highlightBlobPixels;
     break;
   }
 }
