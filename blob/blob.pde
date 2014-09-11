@@ -15,6 +15,15 @@ import processing.video.*;
 final int       videoWidth = 640;
 final int       videoHeight = 360;
 final int       highlightDelay = 2000; // milliseconds       
+final int       HUE_MINUS_BUTTON = 0;
+final int       HUE_PLUS_BUTTON = 1;
+final int       SATURATION_MINUS_BUTTON = 2;
+final int       SATURATION_PLUS_BUTTON = 3;
+final int       BRIGHTNESS_MINUS_BUTTON = 4;
+final int       BRIGHTNESS_PLUS_BUTTON = 5;
+final int       FILL_THRESHOLD_MINUS_BUTTON = 6;
+final int       FILL_THRESHOLD_PLUS_BUTTON = 7;
+final int       BUTTON_COUNT = 8;
 
 int             g_fontHeight;
 int             g_fontWidth;
@@ -24,14 +33,7 @@ PImage          g_snapshot;
 PImage          g_savedImage;
 PFont           g_font;
 int             g_highlightStartTime;
-Button          g_hueMinus;
-Button          g_huePlus;
-Button          g_saturationMinus;
-Button          g_saturationPlus;
-Button          g_brightnessMinus;
-Button          g_brightnessPlus;
-Button          g_thresholdMinus;
-Button          g_thresholdPlus;
+Button[]        g_buttons;
 BlobDetector    g_detector;
 FloodFill       g_floodFill;
 float           g_fillThreshold = 5.0f;
@@ -89,14 +91,15 @@ void setup()
   g_snapshot = createImage(videoWidth, videoHeight, RGB);
   g_snapshot.loadPixels();
   
-  g_hueMinus = new Button(20 + g_fontWidth * 8, videoHeight + int(g_fontHeight * 0.5), g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_huePlus = new Button(20 + g_fontWidth * 14, videoHeight + int(g_fontHeight * 0.5), g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_saturationMinus = new Button(20 + g_fontWidth * 8, videoHeight + int(g_fontHeight * 0.5) + g_fontHeight, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_saturationPlus = new Button(20 + g_fontWidth * 14, videoHeight + int(g_fontHeight * 0.5) + g_fontHeight, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_brightnessMinus = new Button(20 + g_fontWidth * 8, videoHeight + int(g_fontHeight * 0.5) + g_fontHeight * 2, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_brightnessPlus = new Button(20 + g_fontWidth * 14, videoHeight + int(g_fontHeight * 0.5) + g_fontHeight * 2, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_thresholdMinus = new Button(20 + g_fontWidth * 8, videoHeight + int(g_fontHeight * 0.5) + g_fontHeight * 3, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_thresholdPlus = new Button(20 + g_fontWidth * 17, videoHeight + int(g_fontHeight * 0.5) + g_fontHeight * 3, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons = new Button[BUTTON_COUNT];
+  g_buttons[HUE_MINUS_BUTTON] = new Button(20 + g_fontWidth * 8, videoHeight + int(g_fontHeight * 0.5), g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[HUE_PLUS_BUTTON] = new Button(20 + g_fontWidth * 14, videoHeight + int(g_fontHeight * 0.5), g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[SATURATION_MINUS_BUTTON] = new Button(20 + g_fontWidth * 8, videoHeight + int(g_fontHeight * 0.5) + g_fontHeight, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[SATURATION_PLUS_BUTTON] = new Button(20 + g_fontWidth * 14, videoHeight + int(g_fontHeight * 0.5) + g_fontHeight, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[BRIGHTNESS_MINUS_BUTTON] = new Button(20 + g_fontWidth * 8, videoHeight + int(g_fontHeight * 0.5) + g_fontHeight * 2, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[BRIGHTNESS_PLUS_BUTTON] = new Button(20 + g_fontWidth * 14, videoHeight + int(g_fontHeight * 0.5) + g_fontHeight * 2, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[FILL_THRESHOLD_MINUS_BUTTON] = new Button(20 + g_fontWidth * 8, videoHeight + int(g_fontHeight * 0.5) + g_fontHeight * 3, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[FILL_THRESHOLD_PLUS_BUTTON] = new Button(20 + g_fontWidth * 17, videoHeight + int(g_fontHeight * 0.5) + g_fontHeight * 3, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
   
   g_detector = new BlobDetector(g_constraints);
   g_floodFill = new FloodFill();
@@ -132,39 +135,27 @@ void draw()
   text(g_constraints.brightnessThreshold, textX, videoHeight + (g_fontHeight / 2) + (line++ * g_fontHeight));
   text(nf(g_fillThreshold, 3, 2), textX, videoHeight + (g_fontHeight / 2) + (line++ * g_fontHeight));
   
-  g_hueMinus.update();
-  g_huePlus.update();
-  g_saturationMinus.update();
-  g_saturationPlus.update();
-  g_brightnessMinus.update();
-  g_brightnessPlus.update();
-  g_thresholdMinus.update();
-  g_thresholdPlus.update();
-
-  g_hueMinus.display();
-  g_huePlus.display();
-  g_saturationMinus.display();
-  g_saturationPlus.display();
-  g_brightnessMinus.display();
-  g_brightnessPlus.display();
-  g_thresholdMinus.display();
-  g_thresholdPlus.display();
+  for (int i = 0 ; i < g_buttons.length ; i++)
+  {
+    g_buttons[i].update();
+    g_buttons[i].display();
+  }
   
-  if (g_hueMinus.isPressed())
+  if (g_buttons[HUE_MINUS_BUTTON].isPressed())
     g_constraints.hueThreshold = max(0, g_constraints.hueThreshold - 1);
-  if (g_huePlus.isPressed())
+  if (g_buttons[HUE_PLUS_BUTTON].isPressed())
     g_constraints.hueThreshold = min(255, g_constraints.hueThreshold + 1);
-  if (g_saturationMinus.isPressed())
+  if (g_buttons[SATURATION_MINUS_BUTTON].isPressed())
     g_constraints.saturationThreshold = max(0, g_constraints.saturationThreshold - 1);
-  if (g_saturationPlus.isPressed())
+  if (g_buttons[SATURATION_PLUS_BUTTON].isPressed())
     g_constraints.saturationThreshold = min(255, g_constraints.saturationThreshold + 1);
-  if (g_brightnessMinus.isPressed())
+  if (g_buttons[BRIGHTNESS_MINUS_BUTTON].isPressed())
     g_constraints.brightnessThreshold = max(0, g_constraints.brightnessThreshold - 1);
-  if (g_brightnessPlus.isPressed())
+  if (g_buttons[BRIGHTNESS_PLUS_BUTTON].isPressed())
     g_constraints.brightnessThreshold = min(255, g_constraints.brightnessThreshold + 1);
-  if (g_thresholdMinus.isPressed())
+  if (g_buttons[FILL_THRESHOLD_MINUS_BUTTON].isPressed())
     g_fillThreshold = max(0.0f, g_fillThreshold - 0.25f);
-  if (g_thresholdPlus.isPressed())
+  if (g_buttons[FILL_THRESHOLD_PLUS_BUTTON].isPressed())
     g_fillThreshold = min(255.0f, g_fillThreshold + 0.25f);
   
   if (mouseX >= g_video.width && mouseY < g_video.height)
@@ -250,25 +241,17 @@ void keyPressed()
 
 void mousePressed()
 {
-  g_hueMinus.press();
-  g_huePlus.press();
-  g_saturationMinus.press();
-  g_saturationPlus.press();
-  g_brightnessMinus.press();
-  g_brightnessPlus.press();
-  g_thresholdMinus.press();
-  g_thresholdPlus.press();
+  for (int i = 0 ; i < g_buttons.length ; i++)
+  {
+    g_buttons[i].press();
+  }
 }
 
 void mouseReleased()
 {
-  g_hueMinus.release();
-  g_huePlus.release();
-  g_saturationMinus.release();
-  g_saturationPlus.release();
-  g_brightnessMinus.release();
-  g_brightnessPlus.release();
-  g_thresholdMinus.release();
-  g_thresholdPlus.release();
+  for (int i = 0 ; i < g_buttons.length ; i++)
+  {
+    g_buttons[i].release();
+  }
 }
 
