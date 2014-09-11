@@ -25,6 +25,14 @@ class ConfigFile
     return null;
   }
   
+  public int getInt(String paramName)
+  {
+    String paramValue = findParam(paramName);
+    if (paramValue != null)
+      return int(paramValue);
+    throw new RuntimeException("Parameter " + paramName + " not found");
+  }
+  
   public IntVector getIntVector(String paramName)
   {
     String paramValue = findParam(paramName);

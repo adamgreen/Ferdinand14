@@ -32,6 +32,7 @@ final int       BUTTON_COUNT = 14;
 int             g_fontHeight;
 int             g_fontWidth;
 BlobConstraints g_constraints;
+int             g_minBlobDimension;
 Capture         g_video;
 PImage          g_snapshot;
 PImage          g_savedImage;
@@ -40,7 +41,7 @@ int             g_highlightStartTime;
 Button[]        g_buttons;
 BlobDetector    g_detector;
 FloodFill       g_floodFill;
-float           g_fillThreshold = 5.0f;
+float           g_fillThreshold = 7.5f;
 
 void setup() 
 {
@@ -68,6 +69,7 @@ protected void initCamera()
       cameraName = configFile.getString("blob.camera");
       IntVector hsb = configFile.getIntVector("blob.hsb");
       IntVector thresholds = configFile.getIntVector("blob.thresholds");
+      g_minBlobDimension = configFile.getInt("blob.minDimension");
       g_constraints = new BlobConstraints(hsb.x, hsb.y, hsb.z, thresholds.x, thresholds.y, thresholds.z);
     }
   }
@@ -232,13 +234,16 @@ protected void drawBlobHighlights()
   copy.copy(g_video, 0, 0, g_video.width, g_video.height, 0, 0, copy.width, copy.height);
   while (null != (blob = g_detector.getNextBlob()))
   {
-    int src = 0;
-    for (int y = blob.minY ; y <= blob.maxY ; y++)
+    if (blob.width >= g_minBlobDimension && blob.height >= g_minBlobDimension)
     {
-      for (int x = blob.minX ; x <= blob.maxX ; x++)
+      int src = 0;
+      for (int y = blob.minY ; y <= blob.maxY ; y++)
       {
-        if (blob.pixels[src++])
-          copy.pixels[y * g_video.width + x] = color(255, 255, 0);
+        for (int x = blob.minX ; x <= blob.maxX ; x++)
+        {
+          if (blob.pixels[src++])
+            copy.pixels[y * g_video.width + x] = color(255, 255, 0);
+        }
       }
     }
   }
@@ -256,7 +261,8 @@ void drawBlobBoundingBoxes()
   g_detector.rewindBlobPointer();
   while (null != (blob = g_detector.getNextBlob()))
   {
-    rect(blob.minX, blob.minY, blob.width, blob.height);
+    if (blob.width >= g_minBlobDimension && blob.height >= g_minBlobDimension)
+      rect(blob.minX, blob.minY, blob.width, blob.height);
   }
 }
 
