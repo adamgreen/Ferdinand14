@@ -11,6 +11,7 @@
     GNU General Public License for more details.
 */
 import processing.video.*;
+import SimpleOpenNI.*;
 
 final int       highlightDelay = 2000; // milliseconds     
 final int       downSample = 1;
@@ -31,10 +32,13 @@ final int       FILL_THRESHOLD_MINUS_BUTTON = 12;
 final int       FILL_THRESHOLD_PLUS_BUTTON = 13;
 final int       BUTTON_COUNT = 14;
 
+SimpleOpenNI  kinect1;
+
 int             g_fontHeight;
 int             g_fontWidth;
 BlobConstraints g_constraints;
-Capture         g_video;
+//Capture         rgbImage1;
+PImage          rgbImage1;
 PImage          g_snapshot;
 PImage          g_savedImage;
 PFont           g_font;
@@ -61,7 +65,20 @@ void setup()
 
 protected void initCamera()
 {
-  String cameraName = null;
+  
+  kinect1 = new SimpleOpenNI(this);
+      if (kinect1.isInit() == false)
+      {
+        println("Can't init SimpleOpenNI, maybe the camera is not connected!"); 
+        exit();
+        return;
+      }
+        kinect1.setMirror(false);
+        //kinect1.enableDepth();
+        kinect1.enableRGB();
+        
+        
+  String cameraName = "foo";
 
   try
   {
@@ -99,21 +116,25 @@ protected void initCamera()
     return;
   }
 
-  g_video = new Capture(this, cameraName);
-  if (g_video == null)
-    println("Failed to create video object.");
-  g_video.start();
+  //rgbImage1 = new Capture(this, cameraName);
+  //if (rgbImage1 == null)
+  //  println("Failed to create video object.");
+  //rgbImage1.start();
 }
 
 void draw() 
 {
-  if (!g_video.available())
-    return;
-  g_video.read();
-  
+  //if (!rgbImage1.available())
+  //  return;
+  //rgbImage1.read();
+
+    kinect1.update();
+    rgbImage1 = kinect1.rgbImage(); 
+   
+    
   if (g_snapshot == null)
   {
-    g_snapshot = createImage(g_video.width, g_video.height, RGB);
+    g_snapshot = createImage(rgbImage1.width, rgbImage1.height, RGB);
     g_snapshot.loadPixels();
     createButtons();
   }
@@ -124,21 +145,21 @@ void draw()
   }
   
   background(0, 0, 0);
-  image(g_snapshot, g_video.width, 0, g_snapshot.width, g_snapshot.height);
+  image(g_snapshot, rgbImage1.width, 0, g_snapshot.width, g_snapshot.height);
   
   int textX = 20;
   int line = 1;
   fill(255);
-  text("H:   " + g_constraints.hue, textX, g_video.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
-  text("S:   " + g_constraints.saturation, textX, g_video.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
-  text("B:   " + g_constraints.brightness, textX, g_video.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
+  text("H:   " + g_constraints.hue, textX, rgbImage1.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
+  text("S:   " + g_constraints.saturation, textX, rgbImage1.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
+  text("B:   " + g_constraints.brightness, textX, rgbImage1.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
   
   textX += g_fontWidth * 13;
   line = 1;
-  text(g_constraints.hueThreshold, textX, g_video.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
-  text(g_constraints.saturationThreshold, textX, g_video.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
-  text(g_constraints.brightnessThreshold, textX, g_video.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
-  text(nf(g_fillThreshold, 3, 2), textX, g_video.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
+  text(g_constraints.hueThreshold, textX, rgbImage1.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
+  text(g_constraints.saturationThreshold, textX, rgbImage1.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
+  text(g_constraints.brightnessThreshold, textX, rgbImage1.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
+  text(nf(g_fillThreshold, 3, 2), textX, rgbImage1.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
   
   for (int i = 0 ; i < g_buttons.length ; i++)
   {
@@ -175,20 +196,20 @@ void draw()
   if (g_buttons[FILL_THRESHOLD_PLUS_BUTTON].isPressed())
     g_fillThreshold = min(255.0f, g_fillThreshold + 0.25f);
   
-  if (mouseX >= g_video.width && mouseY < g_video.height)
+  if (mouseX >= rgbImage1.width && mouseY < rgbImage1.height)
   {
     stroke(255, 255, 0);    
-    line(g_video.width, mouseY, width - 1, mouseY);
+    line(rgbImage1.width, mouseY, width - 1, mouseY);
     line(mouseX, 0, mouseX, g_snapshot.height - 1);
     
-    int imageX = mouseX - g_video.width;
+    int imageX = mouseX - rgbImage1.width;
     int imageY = mouseY;
     int pixelValue = g_snapshot.pixels[imageY * g_snapshot.width + imageX];
     textX += g_fontWidth * 10;
     line = 1;
-    text(int(hue(pixelValue)), textX, g_video.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
-    text(int(saturation(pixelValue)), textX, g_video.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
-    text(int(brightness(pixelValue)), textX, g_video.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
+    text(int(hue(pixelValue)), textX, rgbImage1.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
+    text(int(saturation(pixelValue)), textX, rgbImage1.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
+    text(int(brightness(pixelValue)), textX, rgbImage1.height + (g_fontHeight / 2) + (line++ * g_fontHeight));
     
     if (mousePressed && g_savedImage == null)
     {
@@ -202,11 +223,11 @@ void draw()
     
     fill(pixelValue);
     noStroke();
-    rect(20 + g_fontWidth * 21, g_video.height + g_fontHeight * 1.5, g_fontWidth, g_fontHeight);
+    rect(20 + g_fontWidth * 21, rgbImage1.height + g_fontHeight * 1.5, g_fontWidth, g_fontHeight);
   }
   
   g_detector.setConstraints(g_constraints);
-  g_detector.update(g_video);
+  g_detector.update(rgbImage1);
   drawBlobHighlights();
   drawBlobBoundingBoxes();
 }
@@ -214,26 +235,26 @@ void draw()
 protected void createButtons()
 {
   g_buttons = new Button[BUTTON_COUNT];
-  g_buttons[HUE_MINUS_BUTTON] = new Button(20 + g_fontWidth * 3, g_video.height + int(g_fontHeight * 0.5), g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_buttons[HUE_PLUS_BUTTON] = new Button(20 + g_fontWidth * 9, g_video.height + int(g_fontHeight * 0.5), g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_buttons[SATURATION_MINUS_BUTTON] = new Button(20 + g_fontWidth * 3, g_video.height + int(g_fontHeight * 0.5) + g_fontHeight, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_buttons[SATURATION_PLUS_BUTTON] = new Button(20 + g_fontWidth * 9, g_video.height + int(g_fontHeight * 0.5) + g_fontHeight, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_buttons[BRIGHTNESS_MINUS_BUTTON] = new Button(20 + g_fontWidth * 3, g_video.height + int(g_fontHeight * 0.5) + g_fontHeight * 2, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_buttons[BRIGHTNESS_PLUS_BUTTON] = new Button(20 + g_fontWidth * 9, g_video.height + int(g_fontHeight * 0.5) + g_fontHeight * 2, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_buttons[HUE_THRESHOLD_MINUS_BUTTON] = new Button(20 + g_fontWidth * 11, g_video.height + int(g_fontHeight * 0.5), g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_buttons[HUE_THRESHOLD_PLUS_BUTTON] = new Button(20 + g_fontWidth * 17, g_video.height + int(g_fontHeight * 0.5), g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_buttons[SATURATION_THRESHOLD_MINUS_BUTTON] = new Button(20 + g_fontWidth * 11, g_video.height + int(g_fontHeight * 0.5) + g_fontHeight, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_buttons[SATURATION_THRESHOLD_PLUS_BUTTON] = new Button(20 + g_fontWidth * 17, g_video.height + int(g_fontHeight * 0.5) + g_fontHeight, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_buttons[BRIGHTNESS_THRESHOLD_MINUS_BUTTON] = new Button(20 + g_fontWidth * 11, g_video.height + int(g_fontHeight * 0.5) + g_fontHeight * 2, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_buttons[BRIGHTNESS_THRESHOLD_PLUS_BUTTON] = new Button(20 + g_fontWidth * 17, g_video.height + int(g_fontHeight * 0.5) + g_fontHeight * 2, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_buttons[FILL_THRESHOLD_MINUS_BUTTON] = new Button(20 + g_fontWidth * 11, g_video.height + int(g_fontHeight * 0.5) + g_fontHeight * 3, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
-  g_buttons[FILL_THRESHOLD_PLUS_BUTTON] = new Button(20 + g_fontWidth * 20, g_video.height + int(g_fontHeight * 0.5) + g_fontHeight * 3, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[HUE_MINUS_BUTTON] = new Button(20 + g_fontWidth * 3, rgbImage1.height + int(g_fontHeight * 0.5), g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[HUE_PLUS_BUTTON] = new Button(20 + g_fontWidth * 9, rgbImage1.height + int(g_fontHeight * 0.5), g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[SATURATION_MINUS_BUTTON] = new Button(20 + g_fontWidth * 3, rgbImage1.height + int(g_fontHeight * 0.5) + g_fontHeight, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[SATURATION_PLUS_BUTTON] = new Button(20 + g_fontWidth * 9, rgbImage1.height + int(g_fontHeight * 0.5) + g_fontHeight, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[BRIGHTNESS_MINUS_BUTTON] = new Button(20 + g_fontWidth * 3, rgbImage1.height + int(g_fontHeight * 0.5) + g_fontHeight * 2, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[BRIGHTNESS_PLUS_BUTTON] = new Button(20 + g_fontWidth * 9, rgbImage1.height + int(g_fontHeight * 0.5) + g_fontHeight * 2, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[HUE_THRESHOLD_MINUS_BUTTON] = new Button(20 + g_fontWidth * 11, rgbImage1.height + int(g_fontHeight * 0.5), g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[HUE_THRESHOLD_PLUS_BUTTON] = new Button(20 + g_fontWidth * 17, rgbImage1.height + int(g_fontHeight * 0.5), g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[SATURATION_THRESHOLD_MINUS_BUTTON] = new Button(20 + g_fontWidth * 11, rgbImage1.height + int(g_fontHeight * 0.5) + g_fontHeight, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[SATURATION_THRESHOLD_PLUS_BUTTON] = new Button(20 + g_fontWidth * 17, rgbImage1.height + int(g_fontHeight * 0.5) + g_fontHeight, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[BRIGHTNESS_THRESHOLD_MINUS_BUTTON] = new Button(20 + g_fontWidth * 11, rgbImage1.height + int(g_fontHeight * 0.5) + g_fontHeight * 2, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[BRIGHTNESS_THRESHOLD_PLUS_BUTTON] = new Button(20 + g_fontWidth * 17, rgbImage1.height + int(g_fontHeight * 0.5) + g_fontHeight * 2, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[FILL_THRESHOLD_MINUS_BUTTON] = new Button(20 + g_fontWidth * 11, rgbImage1.height + int(g_fontHeight * 0.5) + g_fontHeight * 3, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
+  g_buttons[FILL_THRESHOLD_PLUS_BUTTON] = new Button(20 + g_fontWidth * 20, rgbImage1.height + int(g_fontHeight * 0.5) + g_fontHeight * 3, g_fontWidth, g_fontHeight, color(204), color(255), color(0));
 }
 
 protected void drawBlobHighlights()
 {
-  PImage copy = createImage(g_video.width, g_video.height, RGB);
-  copy.copy(g_video, 0, 0, g_video.width, g_video.height, 0, 0, copy.width, copy.height);
+  PImage copy = createImage(rgbImage1.width, rgbImage1.height, RGB);
+  copy.copy(rgbImage1, 0, 0, rgbImage1.width, rgbImage1.height, 0, 0, copy.width, copy.height);
 
   if (g_highlightBlobPixels)
   {
@@ -246,7 +267,7 @@ protected void drawBlobHighlights()
         for (int x = blob.minX ; x <= blob.maxX ; x++)
         {
           if (blob.pixels[src++])
-            copy.pixels[y * g_video.width + x] = color(255, 255, 0);
+            copy.pixels[y * rgbImage1.width + x] = color(255, 255, 0);
         }
       }
     }
@@ -277,7 +298,7 @@ void keyPressed()
   case ' ':
     if (g_snapshot != null && g_savedImage == null)
     {
-      g_snapshot.copy(g_video, 0, 0, g_video.width, g_video.height, 0, 0, g_snapshot.width, g_snapshot.height);
+      g_snapshot.copy(rgbImage1, 0, 0, rgbImage1.width, rgbImage1.height, 0, 0, g_snapshot.width, g_snapshot.height);
       g_snapshot.loadPixels();
     }
     break;
