@@ -19,8 +19,9 @@ class BlobConstraints
   public int hueThreshold;
   public int saturationThreshold;
   public int brightnessThreshold;
+  public int minBlobDimension;
   
-  public BlobConstraints(int hue, int saturation, int brightness, int hueThreshold, int saturationThreshold, int brightnessThreshold)
+  public BlobConstraints(int hue, int saturation, int brightness, int hueThreshold, int saturationThreshold, int brightnessThreshold, int minBlobDimension)
   {
     this.hue = hue;
     this.saturation = saturation;
@@ -28,6 +29,7 @@ class BlobConstraints
     this.hueThreshold = hueThreshold;
     this.saturationThreshold = saturationThreshold;
     this.brightnessThreshold = brightnessThreshold;
+    this.minBlobDimension = minBlobDimension;
   }
 };
 
@@ -223,18 +225,23 @@ class BlobDetector
         // This is a root blob that now contains all pixels for a full blob after merging.
         curr.width = curr.maxX - curr.minX + 1;
         curr.height = curr.maxY - curr.minY + 1;
-        setPixels(image, curr);
         
-        // Remove all blobs from the list which aren't also roots.
-        if (lastRoot == null)
+        // We only keep this root blob if it meets the minimum dimension constraint.
+        if (curr.width >= m_constraints.minBlobDimension && curr.height >= m_constraints.minBlobDimension)
         {
-          m_blobs = curr;
+          setPixels(image, curr);
+          
+          // Remove all blobs from the list which aren't also roots.
+          if (lastRoot == null)
+          {
+            m_blobs = curr;
+          }
+          else
+          {
+            lastRoot.prev = curr;
+          }
+          lastRoot = curr;
         }
-        else
-        {
-          lastRoot.prev = curr;
-        }
-        lastRoot = curr;
       }
       else
       {
@@ -243,6 +250,17 @@ class BlobDetector
       }
       
       curr = curr.prev;
+    }
+    
+    if (lastRoot != null)
+    {
+      // Make sure that the final list of roots gets null terminated.
+      lastRoot.prev = null;
+    }
+    else
+    {
+      // There were no roots found after minimum dimension checks were run so clear list.
+      m_blobs = null;
     }
   } 
   

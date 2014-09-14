@@ -32,7 +32,6 @@ final int       BUTTON_COUNT = 14;
 int             g_fontHeight;
 int             g_fontWidth;
 BlobConstraints g_constraints;
-int             g_minBlobDimension;
 Capture         g_video;
 PImage          g_snapshot;
 PImage          g_savedImage;
@@ -70,14 +69,14 @@ protected void initCamera()
       cameraName = configFile.getString("blob.camera");
       IntVector hsb = configFile.getIntVector("blob.hsb");
       IntVector thresholds = configFile.getIntVector("blob.thresholds");
-      g_minBlobDimension = configFile.getInt("blob.minDimension");
-      g_constraints = new BlobConstraints(hsb.x, hsb.y, hsb.z, thresholds.x, thresholds.y, thresholds.z);
+      int minBlobDimension = configFile.getInt("blob.minDimension");
+      g_constraints = new BlobConstraints(hsb.x, hsb.y, hsb.z, thresholds.x, thresholds.y, thresholds.z, minBlobDimension);
     }
   }
   catch (Exception e)
   {
     cameraName = null;
-    g_constraints = new BlobConstraints(0, 0, 0, 0, 0, 0);
+    g_constraints = new BlobConstraints(0, 0, 0, 0, 0, 0, 0);
   }
   
   if (cameraName == null)
@@ -238,16 +237,13 @@ protected void drawBlobHighlights()
     Blob   blob;
     while (null != (blob = g_detector.getNextBlob()))
     {
-      if (blob.width >= g_minBlobDimension && blob.height >= g_minBlobDimension)
+      int src = 0;
+      for (int y = blob.minY ; y <= blob.maxY ; y++)
       {
-        int src = 0;
-        for (int y = blob.minY ; y <= blob.maxY ; y++)
+        for (int x = blob.minX ; x <= blob.maxX ; x++)
         {
-          for (int x = blob.minX ; x <= blob.maxX ; x++)
-          {
-            if (blob.pixels[src++])
-              copy.pixels[y * g_video.width + x] = color(255, 255, 0);
-          }
+          if (blob.pixels[src++])
+            copy.pixels[y * g_video.width + x] = color(255, 255, 0);
         }
       }
     }
@@ -267,8 +263,7 @@ void drawBlobBoundingBoxes()
   g_detector.rewindBlobPointer();
   while (null != (blob = g_detector.getNextBlob()))
   {
-    if (blob.width >= g_minBlobDimension && blob.height >= g_minBlobDimension)
-      rect(blob.minX, blob.minY, blob.width, blob.height);
+    rect(blob.minX, blob.minY, blob.width, blob.height);
   }
 }
 

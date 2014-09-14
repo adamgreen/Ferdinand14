@@ -18,7 +18,7 @@ class FillResults
   
   public FillResults(int hue, int saturation, int brightness, int hueThreshold, int saturationThreshold, int brightnessThreshold, int filledPixels, PImage highlightedImage)
   {
-    constraints = new BlobConstraints(hue, saturation, brightness, hueThreshold, saturationThreshold, brightnessThreshold);
+    constraints = new BlobConstraints(hue, saturation, brightness, hueThreshold, saturationThreshold, brightnessThreshold, 0);
     this.filledPixels = filledPixels;
     this.highlightedImage = highlightedImage;
     this.highlightedImage.updatePixels();
