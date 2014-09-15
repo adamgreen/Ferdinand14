@@ -43,8 +43,13 @@ public class FilteredCompass extends PApplet
     // Calculate the yaw angle (rotation about y axis) from the rotation quaternion.
     PMatrix3D rotationMatrix = quaternionToMatrix(m_rotationQuaternion);
     PVector north = new PVector(rotationMatrix.m00, rotationMatrix.m01, rotationMatrix.m02);
-    float headingAngle = atan2(-north.x, -north.z);
-    return headingAngle + m_declinationCorrection;
+    float headingAngle = atan2(-north.x, -north.z) + m_declinationCorrection;
+    if (headingAngle > PI)
+      headingAngle -= TWO_PI;
+    else if (headingAngle < -PI)
+      headingAngle += TWO_PI;
+      
+    return headingAngle;
   }
 
   public void serialEvent(Serial port)
