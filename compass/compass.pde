@@ -39,7 +39,7 @@ void drawCompass(float angle)
 
   fill(0, 0, 255);
   rotateY(angle);
-  translate(2.5, 0, 50);
+  translate(2.5, 0, -50);
   box(5, 10, 100);
 }
 
