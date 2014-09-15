@@ -191,6 +191,7 @@ void draw()
     if (mousePressed && g_savedImage == null)
     {
       FillResults results = g_floodFill.findColorThresholds(g_snapshot, imageX, imageY, g_fillThreshold, color(255, 255, 0));
+      results.constraints.minBlobDimension = g_constraints.minBlobDimension;
       g_constraints = results.constraints;
       g_savedImage = g_snapshot;
       g_highlightStartTime = millis();
