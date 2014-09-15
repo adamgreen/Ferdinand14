@@ -26,6 +26,8 @@ public class FilteredCompass extends PApplet
     m_calibration.gyroCoefficientA = configFile.getFloatVector("compass.gyro.coefficient.A");
     m_calibration.gyroCoefficientB = configFile.getFloatVector("compass.gyro.coefficient.B");
     m_calibration.gyroScale = configFile.getFloatVector("compass.gyro.scale");
+    IntVector declinationCorrection = configFile.getIntVector("compass.declinationCorrection");
+    m_declinationCorrection = radians(declinationCorrection.x + declinationCorrection.y / 60.0f + declinationCorrection.z / 3600.0f);
     
     m_port = new Serial(this, configFile.getString("compass.port"), 230400);
     m_headingSensor = new HeadingSensor(m_port, m_calibration);
@@ -42,7 +44,7 @@ public class FilteredCompass extends PApplet
     PMatrix3D rotationMatrix = quaternionToMatrix(m_rotationQuaternion);
     PVector north = new PVector(rotationMatrix.m00, rotationMatrix.m01, rotationMatrix.m02);
     float headingAngle = atan2(-north.x, -north.z);
-    return headingAngle;
+    return headingAngle + m_declinationCorrection;
   }
 
   public void serialEvent(Serial port)
@@ -208,6 +210,7 @@ public class FilteredCompass extends PApplet
   }
   
   protected HeadingSensorCalibration m_calibration;
+  protected float                    m_declinationCorrection;
   protected Serial                   m_port;
   protected HeadingSensor            m_headingSensor;
   protected boolean                  m_isInitialized = false;
