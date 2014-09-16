@@ -12,9 +12,9 @@
 */
 import processing.video.*;
 
+final int       highlightDelay = 2000; // milliseconds     
 final int       downSample = 1;
-final boolean   scaleBackUp = false;
-final int       highlightDelay = 2000; // milliseconds       
+
 final int       HUE_MINUS_BUTTON = 0;
 final int       HUE_PLUS_BUTTON = 1;
 final int       SATURATION_MINUS_BUTTON = 2;
@@ -34,8 +34,7 @@ final int       BUTTON_COUNT = 14;
 int             g_fontHeight;
 int             g_fontWidth;
 BlobConstraints g_constraints;
-Capture         g_camera;
-PImage          g_video;
+Capture         g_video;
 PImage          g_snapshot;
 PImage          g_savedImage;
 PFont           g_font;
@@ -56,7 +55,7 @@ void setup()
   g_fontWidth = int(textWidth(' ') + 0.5f);
   
   initCamera();
-  g_detector = new BlobDetector(g_constraints);
+  g_detector = new BlobDetector(g_constraints, downSample);
   g_floodFill = new FloodFill();
 }
 
@@ -72,7 +71,7 @@ protected void initCamera()
       cameraName = configFile.getString("blob.camera");
       IntVector hsb = configFile.getIntVector("blob.hsb");
       IntVector thresholds = configFile.getIntVector("blob.thresholds");
-      int minBlobDimension = configFile.getInt("blob.minDimension") / downSample;
+      int minBlobDimension = configFile.getInt("blob.minDimension");
       g_constraints = new BlobConstraints(hsb.x, hsb.y, hsb.z, thresholds.x, thresholds.y, thresholds.z, minBlobDimension);
     }
   }
@@ -100,33 +99,17 @@ protected void initCamera()
     return;
   }
 
-  g_camera = new Capture(this, cameraName);
-  if (g_camera == null)
+  g_video = new Capture(this, cameraName);
+  if (g_video == null)
     println("Failed to create video object.");
-  g_camera.start();
+  g_video.start();
 }
 
 void draw() 
 {
-  if (!g_camera.available())
+  if (!g_video.available())
     return;
-  g_camera.read();
-  if (downSample > 1)
-  {
-    // Filter the image as it is downsampled.
-    g_video = createImage(g_camera.width, g_camera.height, RGB);
-    g_video.copy(g_camera, 0, 0, g_camera.width, g_camera.height, 0, 0, g_video.width, g_video.height);
-    g_video.resize(g_camera.width / downSample, g_camera.height / downSample);
-    
-    // Scaling it back up increases the resolution back up after filtering to make it easier to see results but
-    // increases image processing time for no good reason.
-    if (scaleBackUp)
-      g_video.resize(g_camera.width, g_camera.height);
-  }
-  else
-  {
-    g_video = g_camera;
-  }
+  g_video.read();
   
   if (g_snapshot == null)
   {

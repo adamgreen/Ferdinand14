@@ -21,7 +21,13 @@ class BlobConstraints
   public int brightnessThreshold;
   public int minBlobDimension;
   
-  public BlobConstraints(int hue, int saturation, int brightness, int hueThreshold, int saturationThreshold, int brightnessThreshold, int minBlobDimension)
+  public BlobConstraints(int hue, 
+                         int saturation, 
+                         int brightness, 
+                         int hueThreshold, 
+                         int saturationThreshold, 
+                         int brightnessThreshold, 
+                         int minBlobDimension)
   {
     this.hue = hue;
     this.saturation = saturation;
@@ -88,10 +94,12 @@ class BlobDetector
   protected int             m_imageHeight;
   protected int             m_minNeighbourLabel;
   protected Blob            m_minNeighbour;
+  protected int             m_downSample;
   
-  public BlobDetector(BlobConstraints constraints)
+  public BlobDetector(BlobConstraints constraints, int downSample)
   {
     m_constraints = constraints;
+    m_downSample = downSample;
   }
   
   public void setConstraints(BlobConstraints constraints)
@@ -101,6 +109,14 @@ class BlobDetector
   
   public void update(PImage image)
   {
+    if (m_downSample > 1)
+    {
+      PImage downSampled = createImage(image.width, image.height, RGB);
+      downSampled.copy(image, 0, 0, image.width, image.height, 0, 0, downSampled.width, downSampled.height);
+      downSampled.resize(image.width / m_downSample, image.height / m_downSample);
+      image = downSampled; 
+    }
+    
     image.loadPixels();
     m_imageWidth = image.width;
     m_imageHeight = image.height;
@@ -227,9 +243,15 @@ class BlobDetector
         curr.height = curr.maxY - curr.minY + 1;
         
         // We only keep this root blob if it meets the minimum dimension constraint.
-        if (curr.width >= m_constraints.minBlobDimension && curr.height >= m_constraints.minBlobDimension)
+        if (curr.width * m_downSample >= m_constraints.minBlobDimension && curr.height * m_downSample >= m_constraints.minBlobDimension)
         {
           setPixels(image, curr);
+          curr.minX *= m_downSample;
+          curr.maxX = curr.maxX * m_downSample + (m_downSample - 1);
+          curr.minY *= m_downSample;
+          curr.maxY = curr.maxY * m_downSample + (m_downSample - 1);
+          curr.width *= m_downSample;
+          curr.height *= m_downSample;
           
           // Remove all blobs from the list which aren't also roots.
           if (lastRoot == null)
@@ -266,27 +288,32 @@ class BlobDetector
   
   protected void setPixels(PImage image, Blob blob)
   {
-    int dest = 0;
     int rowStart = blob.minY * image.width + blob.minX;
 
-    blob.pixels = new boolean[blob.width * blob.height];
+    blob.pixels = new boolean[blob.width * blob.height * m_downSample * m_downSample];
     for (int y = 0 ; y < blob.height ; y++)
     {
       int index = rowStart;
       
       for (int x = 0 ; x < blob.width ; x++)
       {
-        if (matchesConstraints(image.pixels[index++]))
-        {
-          blob.pixels[dest++] = true;
-        }
-        else
-        {
-          blob.pixels[dest++] = false;
-        }
+        setUpsampledPixel(blob, x, y, matchesConstraints(image.pixels[index++]));
       }
       
       rowStart += image.width;
+    }
+  }
+  
+  protected void setUpsampledPixel(Blob blob, int x, int y, boolean state)
+  {
+    int index = y * m_downSample * blob.width * m_downSample + x * m_downSample;
+    for (int row = 0 ; row < m_downSample ; row++)
+    {
+      for (int column = 0 ; column < m_downSample ; column++)
+      {
+        blob.pixels[index + column] = state;
+      }
+      index += blob.width * m_downSample;
     }
   }
   
