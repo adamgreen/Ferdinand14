@@ -12,6 +12,8 @@
 */
 import processing.video.*;
 
+final int       downSample = 1;
+final boolean   scaleBackUp = false;
 final int       highlightDelay = 2000; // milliseconds       
 final int       HUE_MINUS_BUTTON = 0;
 final int       HUE_PLUS_BUTTON = 1;
@@ -32,7 +34,8 @@ final int       BUTTON_COUNT = 14;
 int             g_fontHeight;
 int             g_fontWidth;
 BlobConstraints g_constraints;
-Capture         g_video;
+Capture         g_camera;
+PImage          g_video;
 PImage          g_snapshot;
 PImage          g_savedImage;
 PFont           g_font;
@@ -69,7 +72,7 @@ protected void initCamera()
       cameraName = configFile.getString("blob.camera");
       IntVector hsb = configFile.getIntVector("blob.hsb");
       IntVector thresholds = configFile.getIntVector("blob.thresholds");
-      int minBlobDimension = configFile.getInt("blob.minDimension");
+      int minBlobDimension = configFile.getInt("blob.minDimension") / downSample;
       g_constraints = new BlobConstraints(hsb.x, hsb.y, hsb.z, thresholds.x, thresholds.y, thresholds.z, minBlobDimension);
     }
   }
@@ -97,17 +100,33 @@ protected void initCamera()
     return;
   }
 
-  g_video = new Capture(this, cameraName);
-  if (g_video == null)
+  g_camera = new Capture(this, cameraName);
+  if (g_camera == null)
     println("Failed to create video object.");
-  g_video.start();
+  g_camera.start();
 }
 
 void draw() 
 {
-  if (!g_video.available())
+  if (!g_camera.available())
     return;
-  g_video.read();
+  g_camera.read();
+  if (downSample > 1)
+  {
+    // Filter the image as it is downsampled.
+    g_video = createImage(g_camera.width, g_camera.height, RGB);
+    g_video.copy(g_camera, 0, 0, g_camera.width, g_camera.height, 0, 0, g_video.width, g_video.height);
+    g_video.resize(g_camera.width / downSample, g_camera.height / downSample);
+    
+    // Scaling it back up increases the resolution back up after filtering to make it easier to see results but
+    // increases image processing time for no good reason.
+    if (scaleBackUp)
+      g_video.resize(g_camera.width, g_camera.height);
+  }
+  else
+  {
+    g_video = g_camera;
+  }
   
   if (g_snapshot == null)
   {
