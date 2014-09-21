@@ -11,6 +11,27 @@ Tracking of the work I am doing for a robot to compete in the
 
 
 
+==September 20, 2014
+===Robothon 2014
+Today was Robothon 2014 and I had a great time!  I was too busy during the Robo-Magellan competition itself to take any
+pictures but I did get a few shots of this year's competitors afterwards.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140920-01.jpg}}
+
+**Anthony Witcher and Albert Yen talking shop over Seekeroo.**
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140920-02.jpg}}
+
+**Kids admiring Xandon's robots.**
+
+Some of the other Robothon competitions held during the day.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140920-03.jpg}}
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140920-04.jpg}}
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140920-05.jpg}}
+
+
+
 ==August 19, 2014
 ===Sensor Calibration
 In the past I have been kind of random with how I have determined the calibration settings for each of the sensors.  To
