@@ -11,6 +11,23 @@ Tracking of the work I am doing for a robot to compete in the
 
 
 
+==September 22, 2014
+===Felix's Brother before Competition
+On Saturday evening when I posted some of my photos from that day's Robothon event, I forgot to post the following
+picture.  It shows Xandon's robot as he is preparing it for that day's SRS Robo-Magellan competition.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140922-01.jpg}}
+
+You can see my orientation sensor mounted on the robot's mast to get it away from the fluctuating magnetic fields caused
+by the robot's own motors.  My orientation sensor was used by the robot's navigation software during the competition and
+appeared to perform quite well except for one odd heading change that occurred during the final run.  I don't know if
+that was caused by a sudden erroneous output from the orientation sensor or if the higher level code decided to deviate
+from its current heading for other reasons.  Typically the orientation sensor doesn't generate sudden erroneous output
+when it fails but instead tends to slowly drift towards an incorrect heading.  This makes me suspicious that something
+else occurred in the higher level navigation code.
+
+
+
 ==September 20, 2014
 ===Robothon 2014
 Today was Robothon 2014 and I had a great time!  I was too busy during the Robo-Magellan competition itself to take any
