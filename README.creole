@@ -28,7 +28,17 @@ I used a [[https://www.sparkfun.com/products/10182 | Sparkfun Monster Moto Shiel
 the Wild Thumper chassis.  I wrote some very simple code for a mbed LPC1768 micro controller that allows commands to be
 sent from the PC over a USB based serial connection to control one of these motor shields.  That code can be found
 [[https://github.com/adamgreen/Ferdinand14/blob/master/motor/main.cpp | here]].  The above photo shows the initial
-breadboard based prototype for testing of this code.
+breadboard based prototype for testing of this code.  This table gives an overview of how the mbed was wired to the
+motor controller:
+|= mbed  |= Shield    |= Ribbon Cable |
+| VU     |  +5V       | 9  - White    |
+| GND    |  GND       | 10 - Black    |
+| p21    |  d5 - pwm1 | 2 - Red       |
+| p22    |  d6 - pwm2 | 3 - Orange    |
+| p23    |  d7 - ina1 | 4 - Yellow    |
+| p24    |  d8 - inb1 | 5 - Green     |
+| p25    |  d4 - ina2 | 1 - Brown     |
+| p26    |  d9 - inb2 | 6 - Blue      |
 
 In the end, I used one Monster Moto Shield for each pair of wheels on the Wild Thumper chassis for a total of three.  If
 all six motors were stalled they could demand more current (3 * 5.5A = 16.5A) than a single motor shield could provide
