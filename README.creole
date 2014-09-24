@@ -1,13 +1,55 @@
-==Work in Progress!
 {{http://www.robothon.org/robothon/images/srslogo.gif}}
-Tracking of the work I am doing for a robot to compete in the
-[[http://www.robothon.org/robothon/robo-magellan.php | Seattle Robotics Society Robo-Magellan]] to be held at
-[[http://www.robothon.org/robothon/index.php | Seattle Center on September 20, 2014]].
+Tracking of the work I did for Xandon's robot which competed in the
+[[http://www.robothon.org/robothon/robo-magellan.php | Seattle Robotics Society's Robo-Magellan]] event at the
+[[http://www.robothon.org/robothon/index.php | Seattle Center on September 20, 2014]].  This robot ended up placing
+second in the competition with none of the competitors actually making it to the final cone.
+
+Albert Yen's Clod robot came in first and was able to navigate successfully to one of the bonus cones.\\
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140924-01.jpg}}
+
 
 ===Points of Interest
 [[https://github.com/adamgreen/Ferdinand14#clone-this-repo-and-its-submodules | How to Clone github Repository]]\\
 [[https://github.com/adamgreen/Ferdinand14#sparkfun-9dof-sensor-stick-modifications | Sparkfun 9DoF Sensor Stick Modifications]]\\
 [[https://github.com/adamgreen/Ferdinand14#sensor-calibration | How to Calibrate the Sparkun 9DoF Sensor Stick]]\\
+
+
+
+==September 24, 2014
+Back in June when I first ordered parts for this Ferdinand2014 project, I also purchased a
+[[https://www.sparkfun.com/products/11056 | Wild Thumper 6WD Chassis]] to use as a test bed.  Things got so hectic in
+the lead up to Robothon 2014 that I didn't get a chance to finish setting it up for computer control until very
+recently.
+
+===Wild Thumper with Monster Moto Shields
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140923-01.jpg}}\\
+I used a [[https://www.sparkfun.com/products/10182 | Sparkfun Monster Moto Shield]] to drive the
+[[https://github.com/adamgreen/Ferdinand14/raw/master/docs/WildThumperMotor_34-1_Gearbox.pdf | motors]] that come with
+the Wild Thumper chassis.  I wrote some very simple code for a mbed LPC1768 micro controller that allows commands to be
+sent from the PC over a USB based serial connection to control one of these motor shields.  That code can be found
+[[https://github.com/adamgreen/Ferdinand14/blob/master/motor/main.cpp | here]].  The above photo shows the initial
+breadboard based prototype for testing of this code.
+
+In the end, I used one Monster Moto Shield for each pair of wheels on the Wild Thumper chassis for a total of three.  If
+all six motors were stalled they could demand more current (3 * 5.5A = 16.5A) than a single motor shield could provide
+(15A).  In the current configuration, the driver chips remain cool to the touch, even if the motors are stalled.  If one
+board was to die this configuration would also allow a quick switch in the field  so that a motor could be added to the
+output of another board.  The following two photos show the completed motor wiring with the top plate both removed and
+installed.  The signals from the mbed are fed to all 3 motor shields in parallel so that each motor is commanded to
+perform the same action.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140923-02.jpg}}
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140923-03.jpg}}
+
+===Wild Thumper Motor Quality
+I did my initial testing of the Monster Moto Shields on the center pair of Wild Thumper motors.  Once I wired things up
+such that all six motors would run at the same time, I noticed that these middle motors now run slower and much hotter
+than the other 4.  I think that performing the stall testing on the motor driver with these motors before any kind of
+break-in might have done some permanent damage to them.  Cycling these motors for half hour periods at 3V did seem to
+make them run a bit better but they still don't perform as well as the rest.  I ran the other 4 motors under no load at
+various voltages (starting at 3V and progressing up to 6V) in an attempt to help break them in more gradually.  I will
+now watch the rest of the motors to see if they develop the same problem or if it is just the early abuse that led to
+this problem.
 
 
 
