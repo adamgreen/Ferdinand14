@@ -25,7 +25,7 @@ typedef struct MotorState
 
 static MotorState g_rightMotor;
 static MotorState g_leftMotor;
-static float      g_period = 1.0f / 20000.0f;
+static float      g_period = 1.0f / 100.0f;
 static Serial     g_serial(USBTX, USBRX);
 static PwmOut     g_pwmRight(p21);
 static PwmOut     g_pwmLeft(p22);
