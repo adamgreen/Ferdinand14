@@ -15,6 +15,264 @@ Albert Yen's Clod robot came in first and was able to navigate successfully to o
 
 
 
+==September 27, 2014
+===Vision based Traffic Cone Detector
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140926-05.png}}
+
+For tracking the orange traffic cones, I wanted a simple colour blob tracker.  The goals for my colour blob tracker
+included:
+* Find blobs of contiguous pixels that are close (within specified thresholds) to the known colour of the traffic cone.
+* Process pixel colour values as hue, saturation, and brightness (HSB) instead of the more commonly used RGB or YUV as
+  HSB is more reliable across varying light conditions.
+* Allow the matching threshold for each of the HSB colour channels to be specified separately so that the colour match
+  can be most specific for hue, a bit less specific for saturation, and even less specific for brightness.
+* Return a bounding box for the blob once found in the frame.  I chose to use connected-component labeling since it
+  would allow me to return multiple bounding boxes per frame, one for each matching blob found in the frame.  It is also
+  an easy algorithm to implement so I knew I could crank it out in a couple of hours.
+
+===Connected-Component Labeling
+My implementation of the connected-component labeling algorithm can be found
+[[https://github.com/adamgreen/Ferdinand14/blob/ed039d66246d916dac36470778b1fa95caeec5e8/blob/BlobDetector.pde | here]]
+and I will describe its operation in the next section.
+[[http://en.wikipedia.org/wiki/Connected-component_labeling | Wikipedia]] also has a good description of the core
+algorithm.
+
+====Pseudocode
+* The
+  [[https://github.com/adamgreen/Ferdinand14/blob/ed039d66246d916dac36470778b1fa95caeec5e8/blob/BlobDetector.pde#L110 | update()]]
+  method is called for each video frame.  The update() method starts out by initializing class members for this frame.
+  The main initialization is on
+  [[https://github.com/adamgreen/Ferdinand14/blob/ed039d66246d916dac36470778b1fa95caeec5e8/blob/BlobDetector.pde#L123 | line 123]]
+  where an array of Blob pointers, **m_pixelLabels**, is allocated.  There is an entry in this array for each pixel in
+  the frame and they are used to track to which label each pixel belongs.  Java will initialize each of these label
+  entries to null.
+  [[https://github.com/adamgreen/Ferdinand14/blob/ed039d66246d916dac36470778b1fa95caeec5e8/blob/BlobDetector.pde#L124 | Line 124]]
+  also initializes an empty linked list of blobs, **m_blobs**.
+** **Note:** I will tend to use the terms **label** and **blob** interchangeably in this description and the code.  A
+   blob is actually a label but with more information such as the bounding box containing the pixels with this label.
+* The frame is now processed in two passes:
+** The
+   [[https://github.com/adamgreen/Ferdinand14/blob/ed039d66246d916dac36470778b1fa95caeec5e8/blob/BlobDetector.pde#L131 | firstPass()]]
+   walks through each pixel in the frame.  It starts in the upper left hand corner, progresses to the right across the
+   top row, moves to the leftmost column of the next row, progresses to the right across this row, and continues this
+   process for each row of the frame.  For each pixel it checks to see if it matches the given HSB constraints (ie. does
+   the pixel have a colour close to that of a traffic cone).  If it doesn't match then it just continues onto the next
+   pixel but if it does match then it performs the following:
+*** Calls
+    [[https://github.com/adamgreen/Ferdinand14/blob/ed039d66246d916dac36470778b1fa95caeec5e8/blob/BlobDetector.pde#L181 | findNeighbourWithLowestId()]]
+    to check the pixel's immediate neighbours (via the **m_pixelLabels** array) to see which ones are already labelled
+    as belonging to a blob.  It doesn't need to check all of the neighbours since the ones to its immediate right and
+    below haven't been processed yet.  It only needs to process the 4 which have already been encountered (west,
+    north-west, north, and north-east).  The ** findNeighbourWithLowestId()** method returns a pointer to the blob with
+    the lowest label id or null if there were no neighbours  which already belong to a blob.
+*** If there is no neighbouring pixel that is already part of a blob then create a new blob, add it to the head of
+    the **m_blobs** list, initialize that blob's bounding box to just include the current pixel, and finally record this
+    new blob in the **m_pixelLabels** entry for this pixel.
+*** If there is a neighbouring pixel then use the current pixel's coordinates to extend the existing blob's bounding
+    box, record the existing blob in the **m_pixelLabels** entry for this pixel, and then call
+    [[https://github.com/adamgreen/Ferdinand14/blob/ed039d66246d916dac36470778b1fa95caeec5e8/blob/BlobDetector.pde#L212 | updateNeighbourEquivalences()]]. **updateNeighbourEquivalences()**
+    looks again at each of the neighbouring pixels which are already labelled.  For each labeled neighbour that isn't
+    the one with the lowest label id, set its blob **equivalent** member to the one with the lowest label id.  These
+    equivalences will be used in the second pass to coalesce labelled blobs which touch
+    one another.
+** Once the first pass is complete, we have a **m_blobs** linked list of labelled blobs.  This list is sorted from
+   highest label id to lowest label id.  There are two types of blobs in this list:
+*** Ones with **m_equivalent** set to null.  These blobs were never found to themselves be in the need of merging with a
+    blob of a lower id.  I call these root blobs.
+*** Ones with **m_equivalent** not set to null.  These blobs need to be merged into a blob with a lower label id.
+** The goals of
+   [[https://github.com/adamgreen/Ferdinand14/blob/ed039d66246d916dac36470778b1fa95caeec5e8/blob/BlobDetector.pde#L232 | secondPass()]]
+   are to coalesce all non-root blobs into their equivalent root blob, remove all non-root blobs from the **m_blobs**
+   list, and complete the information stored for each root blob.  To accomplish this it walks the **m_blobs** linked
+   list in descending label id order, performing the following for each blob:
+*** If it is a non-root blob then merge it with the blob pointed to by its **equivalent** member.  This merging process
+    just extends the X and Y bounding box limits to include the current blob's bounding box limits.
+*** If it is a root blob then finalize it by:
+**** Calculating the final bounding box dimensions (now that the X and Y limits are known.)
+**** Populating the blob's **pixels** boolean array with a bit mask of which pixels within the bounding box actually
+     matched the HSB colour constraints.
+**** Update the **m_blobs** linked list by pointing the previously encountered root blob's **prev** pointer to this root
+     blob.  This effectively removes all of the non-root blobs which were previously between these two root blobs.  Once
+     a non-root blob has been merged into blobs with lower label Ids, they are no longer required.
+
+====Example
+I am now going to manually step through the connected-component labeling algorithm on the following image:
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140925-01.png}}
+
+The algorithm starts by looking at the upper left hand pixel (row 0 / column 0).  This pixel isn't part of a blob so it
+will be skipped and it continues onto the pixel to the right.  This pixel isn't part of a blob either so it too is
+skipped.  None of the pixels in row 0 belong to a blob so they are all skipped.  This skipping continues until we get to
+the pixel in row 1 / column 5.  This is the first pixel encountered that belongs to a blob so it will be given a label
+of 1.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140925-02.png}}
+
+A blob entry will be created with an id of 1 and the X/Y limits set to encompass this pixel in row 1 /column 5.
+|= Id |= Equivalent |= minX |= minY |= maxX |= maxY |
+| 1 | **null** | 5 | 1 | 5 | 1 |
+
+Now the algorithm progresses to the next pixel at row 1 / column 6.  It too belongs to a blob.  Looking at the
+neighbouring pixel to the left it sees that it has a label of 1.  The current pixel will be given the same label of 1.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140925-03.png}}
+
+The existing blob entry will have its X/Y limits updated to include this new pixel at row 1 / column 6.
+|= Id |= Equivalent |= minX |= minY |= maxX |= maxY |
+| 1 | **null** | 5 | 1 | 6 | 1 |
+
+The next pixel to the right doesn't belong to a blob so it will be skipped.  The pixel at row 1 / column 8 does belong
+to a blob.  None of the already processed neighbours belong to a blob so it will be given a new label of 2.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140925-04.png}}
+
+A new blob entry will be added to the head of the list to encompass this latest pixel.
+|= Id |= Equivalent |= minX |= minY |= maxX |= maxY |
+| 2 | **null** | 8 | 1 | 8 | 1 |
+| 1 | **null** | 5 | 1 | 6 | 1 |
+
+The next pixel encountered that is part of a blob is found at row 2 / column 3.  None of its neighbours belong to a blob
+yet so it will be given a new label of 3.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140925-05.png}}
+
+The blob list now looks like this:
+|= Id |= Equivalent |= minX |= minY |= maxX |= maxY |
+| 3 | **null** | 3 | 2 | 3 | 2 |
+| 2 | **null** | 8 | 1 | 8 | 1 |
+| 1 | **null** | 5 | 1 | 6 | 1 |
+
+The next pixel at row 2 / column 4 is where things start to get a bit more interesting.  It belongs to a blob so it
+needs a label.  When we look at the neighbouring pixels that have already been processed we see that the neighbour to
+the west has a label of 3 and the one to the north-east has a label of 1.  The current pixel will use the id of its
+lowest neighbour, which is 1 in this case.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140925-06.png}}
+
+We now know that the blob with a label of 3 is actually part of the blob with a label of 1 so we need to record this
+equivalency in blob 3's entry.  The X/Y limits for blob 1 will also be updated to encompass the new pixel at row 2 /
+column 4.
+
+|= Id |= Equivalent |= minX |= minY |= maxX |= maxY |
+| 3 | 1 | 3 | 2 | 3 | 2 |
+| 2 | **null** | 8 | 1 | 8 | 1 |
+| 1 | **null** | 4 | 1 | 6 | 2 |
+
+The next pixel of interest is at row 2 / column 7.  It is part of a blob and its north-west neighbour has an id of 1
+while its north-east neighbour has an id of 2.  This pixel will be given the lowest id of its neighbours, which is 1.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140925-07.png}}
+
+We now know that the blob with a label of 2 is equivalent to the blob with a label of 1.  This fact along with including
+the current pixel's coordinates in the X/Y limits of blob 1 will be recorded in the blob list.
+
+|= Id |= Equivalent |= minX |= minY |= maxX |= maxY |
+| 3 | 1 | 3 | 2 | 3 | 2 |
+| 2 | 1 | 8 | 1 | 8 | 1 |
+| 1 | **null** | 4 | 1 | 7 | 2 |
+
+At the end of row 2, the data structures look like so:
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140925-08.png}}
+
+|= Id |= Equivalent |= minX |= minY |= maxX |= maxY |
+| 3 | 1 | 3 | 2 | 3 | 2 |
+| 2 | 1 | 8 | 1 | 8 | 1 |
+| 1 | **null** | 4 | 1 | 8 | 2 |
+
+After all of the rest of the pixels have been processed, the data structures will look like this:
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140925-09.png}}
+
+|= Id |= Equivalent |= minX |= minY |= maxX |= maxY |
+| 4 | 3 | 1 | 3 | 1 | 3 |
+| 3 | 1 | 2 | 2 | 3 | 3 |
+| 2 | 1 | 8 | 1 | 8 | 1 |
+| 1 | **null** | 4 | 1 | 8 | 2 |
+
+The first pass is now complete.  At this point, the algorithm will walk the blob list in descending id order.  It merges
+X/Y limits of the blobs with non-null equivalent values into the equivalent blob and then deletes the non-null entry.
+
+The first entry in the list has a label of 4 and should be merged into blob 3:
+
+|= Id |= Equivalent |= minX |= minY |= maxX |= maxY |
+| 3 | 1 | 1 | 2 | 3 | 3 |
+| 2 | 1 | 8 | 1 | 8 | 1 |
+| 1 | **null** | 4 | 1 | 8 | 2 |
+
+Blob 3 should be merged into blob 1:
+
+|= Id |= Equivalent |= minX |= minY |= maxX |= maxY |
+| 2 | 1 | 8 | 1 | 8 | 1 |
+| 1 | **null** | 1 | 1 | 8 | 3 |
+
+Blob 2 should be merged into blob 1 as well:
+
+|= Id |= Equivalent |= minX |= minY |= maxX |= maxY |
+| 1 | **null** | 1 | 1 | 8 | 3 |
+
+At this point we are left with the single blob that we desire.  The bounding box starts at (1, 1) and extends to (8, 3).
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140925-10.png}}
+
+===Processing Colour Blob Tracking Sample
+I wrote a Processing based sample for my blob tracking code.  This sample can be found at:
+[[https://github.com/adamgreen/Ferdinand14/tree/master/blob]]
+
+When the application starts, it presents the following UI:\\
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140926-01.png}}
+
+The upper left hand corner shows the live video feed from the selected camera.  Below this video feed there are several
+numbers.  Most of these numbers indicate the current hue, saturation, and brightness (HSB) constraints being used by the
+colour tracking algorithm.  The leftmost column of numbers displays the value expected for each colour channel if it is
+to belong to the blob.  The pixel doesn't need to exactly match this value though to be considered a match.  The second
+column displays the variation allowed for each colour channel. When the sample starts it uses the constraints specified
+in the user's configuration file.  In this particular case the values shown in the screenshot above were taken from this
+configuration data:
+{{{
+blob.camera=name=FaceTime HD Camera,size=640x360,fps=30
+blob.hsb=14,123,230
+blob.thresholds=14,64,24
+blob.minDimension=20
+}}}
+
+These constraints will consider a pixel to belong to the blob if the colour is within these limits:
+|= Channel |= Range |
+| hue | 14 +/- 14 |
+| saturation | 123 +/- 64 |
+| brightness | 230 +/- 24 |
+
+If the user presses the <space> key, the current video frame is copied to the upper right hand part of the window as
+seen in this screenshot:
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140926-02.png}}
+
+The user can then move the mouse cursor within the captured frame on the right hand side and cross-hairs will be
+presented to highlight the currently selected pixel.  Pressing the mouse button will cause the application to perform a
+flood fill from the currently selected pixel.  The bottom most value in the window (below the HSB thresholds) specifies
+how closely a pixel must match the colour of its neighbour for it to be used in the flood fill.  In these screen shots
+it was set to the default of 7.50.  Setting this to a higher value will loosen the constraints and allow the flood fill
+to be less specific about the pixels it selects for the fill.  The results of the flood fill will be highlighted in the
+right frame for 2 seconds.  In the below screen shot you can see this highlighting.  The HSB constraints at the bottom
+of the window have been updated to cover the minimum and maximum HSB values for the pixels that were filled as part of
+the flood.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140926-03.png}}
+
+The gray boxes next to the constraint values at the bottom of the window can be used to increase and decrease their
+associated values.  The following screen shot shows the constraints after I modified them by using these keys to make
+them less restrictive.  It also shows the blob tracker successfully tracking two of the orange balls for which it has
+been configured.
+
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140926-04.png}}
+
+A few other things to note about this sample:
+* Pressing the 'H' key will enable/disable the highlighting of the individual pixels which match the constraints.  The
+  bounding box will always be drawn.
+* When you hover the mouse cursor over pixels in the right frame, additional HSB values will show up in a third column
+at the bottom of the window.  These values represent the HSB values of the currently selected pixel.
+
+
+
 ==September 24, 2014
 Back in June when I first ordered parts for this Ferdinand2014 project, I also purchased a
 [[https://www.sparkfun.com/products/11056 | Wild Thumper 6WD Chassis]] to use as a test bed.  Things got so hectic in
