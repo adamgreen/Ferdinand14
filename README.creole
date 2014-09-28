@@ -19,7 +19,7 @@ Albert Yen's Clod robot came in first and was able to navigate successfully to o
 ==September 28, 2014
 ===Orientation Sensor - Successful
 Overall I think the orientation sensor that I created for this year's Robo-Magellan competition was a success.  It
-appeared to well handle the vibrations, pitching, and rolling that were encountered as the robot maneuvered outside.  We
+appeared to handle well the vibrations, pitching, and rolling that were encountered as the robot maneuvered outside.  We
 only noticed a couple of weaknesses in the final implementation during our testing:
 * Ferrous materials and dynamic magnetic fields found in the environment can induce errors into the magnetometer
   readings.  This was however not an issue in the actual competition as the sensor was elevated a bit on the robot.
