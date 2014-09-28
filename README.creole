@@ -9,9 +9,45 @@ Albert Yen's Clod robot came in first and was able to navigate successfully to o
 
 
 ===Points of Interest
+[[https://github.com/adamgreen/Ferdinand15#readme | Newer notes from my 2015 attempt]]\\
 [[https://github.com/adamgreen/Ferdinand14#clone-this-repo-and-its-submodules | How to Clone github Repository]]\\
 [[https://github.com/adamgreen/Ferdinand14#sparkfun-9dof-sensor-stick-modifications | Sparkfun 9DoF Sensor Stick Modifications]]\\
 [[https://github.com/adamgreen/Ferdinand14#sensor-calibration | How to Calibrate the Sparkun 9DoF Sensor Stick]]\\
+[[https://github.com/adamgreen/Ferdinand14#connected-component-labeling | Connected-Component Labeling for Traffic Cone Detection]]\\
+
+
+==September 28, 2014
+===Orientation Sensor - Successful
+Overall I think the orientation sensor that I created for this year's Robo-Magellan competition was a success.  It
+appeared to well handle the vibrations, pitching, and rolling that were encountered as the robot maneuvered outside.  We
+only noticed a couple of weaknesses in the final implementation during our testing:
+* Ferrous materials and dynamic magnetic fields found in the environment can induce errors into the magnetometer
+  readings.  This was however not an issue in the actual competition as the sensor was elevated a bit on the robot.
+  This got it far enough away from the robot's own motors and any other error inducing materials that might have been
+  underground in the competition area.
+* Violent shaking will induce errors into the accelerometer readings.  The robot used for the competition was too stable
+  to induce such severe vibrations into the sensor so this wasn't a problem.
+
+Currently the code for the orientation sensor is written in Processing/Java and runs on the laptop.  One of the first
+projects I plan to attack for next year's attempt will be to port this code to run on the processor embedded in the
+orientation sensor itself.
+
+===Colour Blob Tracker - Unproven
+My colour blob tracker was running on the robot during the competition but wasn't really utilized.  This was simply due
+to the fact that there wasn't enough time to complete all of the necessary navigation code before the day of the
+competition.  Since this code saw very little real world testing outside using the actual camera on the robot, I would
+say that this code is unproven.  However there are a few weaknesses that we do know about from what testing we did
+accomplish:
+* The noise in the data at 640x480 can cause holes in the blobs.  Some blob pixels will just fall outside of the
+  expected colour constraints for the traffic cone because of noise alone.  There is a **downSample** constant in
+  [[https://github.com/adamgreen/Ferdinand14/blob/ed039d66246d916dac36470778b1fa95caeec5e8/blob/blob.pde#L16 | my blob sample]]
+  which can be used to instead run the colour tracker on a bilinear down sampled version of the video frame.  This
+  reduces noise since the the colour values of neighbouring pixels are averaged together and the algorithm can run
+  faster since it processes fewer pixels.  I found that setting this **downSample** constant to 5 did help to make the
+  code more robust during my testing.
+* The RGB camera on the robot appeared to be very swamped by the IR from the sun on the day of competition.  A lot of
+  the cone was actually bright white and the hue/saturation was very washed out.  Maybe adding an IR filter or using
+  another camera with better filtering might help in this area.
 
 
 
