@@ -9,7 +9,7 @@ Albert Yen's Clod robot came in first and was able to navigate successfully to o
 
 
 ===Points of Interest
-[[https://github.com/adamgreen/Ferdinand15#readme | Newer notes from my 2015 attempt]]\\
+[[https://github.com/adamgreen/Ferdinand16#readme | Newer notes from my 2016 attempt]]\\
 [[https://github.com/adamgreen/Ferdinand14#clone-this-repo-and-its-submodules | How to Clone github Repository]]\\
 [[https://github.com/adamgreen/Ferdinand14#sparkfun-9dof-sensor-stick-modifications | Sparkfun 9DoF Sensor Stick Modifications]]\\
 [[https://github.com/adamgreen/Ferdinand14#sensor-calibration | How to Calibrate the Sparkun 9DoF Sensor Stick]]\\
@@ -551,7 +551,7 @@ would log this temperature along with the drift error for each axis.  Here is a 
 
 {{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140818-01.png}}
 
-The raw timing measurements from the sensor are used for the horizontal axis and the raw measurements from each of the
+The raw temperature measurements from the sensor are used for the horizontal axis and the raw measurements from each of the
 gyro axis (x, y, and z) are used for the vertical axis.  The sensor was initially placed in the freezer for an hour to
 cool down the sensor and then moved to a location at room temperature, allowing it to warm up while the logging was
 taking place.  The sensor is stationary while this data was logged so the gyro readings indicate the amount of drift
@@ -1025,7 +1025,7 @@ would make sense to switch to a part that was easy to obtain so that we could al
 to us.
 
 ====Sparkfun 9 Degrees of Freedom - Sensor Stick
-{{https://cdn.sparkfun.com//assets/parts/5/6/0/5/10724-01b.jpg}}
+{{https://cdn.sparkfun.com/assets/parts/5/6/0/5/10724-01a.jpg}}
 
 I have decided that I would like to try switching to
 [[https://www.sparkfun.com/products/10724 | Sparkfun's 9DoF Sensor Stick]] which contains:
