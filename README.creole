@@ -1,4 +1,4 @@
-{{http://www.robothon.org/robothon/images/srslogo.gif}}
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand16/master/photos/srslogo.gif}}
 Tracking of the work I did for Xandon's robot which competed in the
 [[http://www.robothon.org/robothon/robo-magellan.php | Seattle Robotics Society's Robo-Magellan]] event at the
 [[http://www.robothon.org/robothon/index.php | Seattle Center on September 20, 2014]].  This robot ended up placing
