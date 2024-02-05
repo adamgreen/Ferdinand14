@@ -1,3 +1,6 @@
+=Archived - February 4th, 2024
+This project is no longer under active development.
+
 {{https://raw.githubusercontent.com/adamgreen/Ferdinand16/master/photos/srslogo.gif}}
 Tracking of the work I did for Xandon's robot which competed in the
 [[http://www.robothon.org/robothon/robo-magellan.php | Seattle Robotics Society's Robo-Magellan]] event at the
@@ -9,7 +12,6 @@ Albert Yen's Clod robot came in first and was able to navigate successfully to o
 
 
 ===Points of Interest
-[[https://github.com/adamgreen/Ferdinand16#readme | Newer notes from my 2016 attempt]]\\
 [[https://github.com/adamgreen/Ferdinand14#clone-this-repo-and-its-submodules | How to Clone github Repository]]\\
 [[https://github.com/adamgreen/Ferdinand14#sparkfun-9dof-sensor-stick-modifications | Sparkfun 9DoF Sensor Stick Modifications]]\\
 [[https://github.com/adamgreen/Ferdinand14#sensor-calibration | How to Calibrate the Sparkun 9DoF Sensor Stick]]\\
@@ -416,7 +418,7 @@ the robot.  Another trick to keep in mind is that the earth's magnetic field isn
 but depends on your latitude.  Here in Seattle the north vector points downwards with an inclination angle of ~~69
 degrees.  That is the reason I use a spiral motion to find the minimum/maximum readings.
 
-{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140819-01.png}} 
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140819-01.png}}
 
 The above screen capture shows the output of the calibration program after I rotated one of my sensors through all of
 the maximum and minimum orientations.  Based on this data, I would place these magnetometer settings in my calibration
@@ -435,7 +437,7 @@ its sides and taking the readings while the device is motionless.  You can try p
 the device while it is laying on its side to make sure that a larger reading can't be found while making sure that the
 device is level.
 
-{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140819-01.png}} 
+{{https://raw.githubusercontent.com/adamgreen/Ferdinand14/master/photos/20140819-01.png}}
 
 The above screen capture shows the output of the calibration program as the orientation sensor lies flat on my desk.  It
 shows that the z accelerometer experiences a maximum reading of 226 when placed in this orientation.  Based on this
@@ -581,7 +583,7 @@ Author: Adam Green <adamgr@foo.bar>
 Date:   Thu Aug 14 18:58:41 2014 -0700
 
     Add Kalman filter to gyro Processing sample
-    
+
     This is the initial version of the Kalman filter for fusing the
     accelerometer, magnetometer, and gyro sensor measurements together to
     obtain a filtered orientation result.
